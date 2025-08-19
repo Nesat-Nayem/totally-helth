@@ -33,64 +33,34 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Banner = void 0;
+exports.Goal = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const BannerSchema = new mongoose_1.Schema({
-    title: {
-        type: String,
+const GoalSectionSchema = new mongoose_1.Schema({
+    title: { type: String, required: true, trim: true },
+    icon: { type: String, required: true },
+    description: { type: String, required: true, trim: true },
+}, { _id: false });
+const GoalSchema = new mongoose_1.Schema({
+    title: { type: String, required: true, trim: true },
+    subtitle: { type: String, required: true, trim: true },
+    sections: {
+        type: [GoalSectionSchema],
+        validate: {
+            validator: (arr) => Array.isArray(arr) && arr.length > 0 && arr.length <= 3,
+            message: 'sections must contain between 1 and 3 items',
+        },
         required: true,
-        trim: true
     },
-    image: {
-        type: String,
-        required: true
-    },
-    certLogo: {
-        type: String,
-        required: true,
-    },
-    description: {
-        type: String,
-        required: true,
-        trim: true,
-    },
-    metaTitle: {
-        type: String,
-        required: true,
-        trim: true,
-    },
-    metaDescription: {
-        type: String,
-        required: true,
-        trim: true,
-    },
-    metaKeywords: {
-        type: String,
-        required: true,
-        trim: true,
-    },
-    googleReviewCount: {
-        type: Number,
-        required: true,
-        min: 0,
-    },
-    status: {
-        type: String,
-        enum: ['active', 'inactive'],
-        default: 'active',
-    },
-    order: {
-        type: Number,
-        default: 0
-    },
-    isDeleted: {
-        type: Boolean,
-        default: false
-    },
+    metaTitle: { type: String, required: true, trim: true },
+    metaDescription: { type: String, required: true, trim: true },
+    metaKeywords: { type: String, required: true, trim: true },
+    status: { type: String, enum: ['active', 'inactive'], default: 'active' },
+    order: { type: Number, default: 0 },
+    isDeleted: { type: Boolean, default: false },
 }, {
     timestamps: true,
     toJSON: {
-        transform: function (doc, ret) {
+        transform: function (_doc, ret) {
             const r = ret;
             if (r.createdAt) {
                 r.createdAt = new Date(r.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
@@ -98,7 +68,7 @@ const BannerSchema = new mongoose_1.Schema({
             if (r.updatedAt) {
                 r.updatedAt = new Date(r.updatedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
             }
-        }
-    }
+        },
+    },
 });
-exports.Banner = mongoose_1.default.model('Banner', BannerSchema);
+exports.Goal = mongoose_1.default.model('Goal', GoalSchema);

@@ -3,19 +3,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.bannerRouter = void 0;
+exports.goalRouter = void 0;
 const express_1 = __importDefault(require("express"));
-const banner_controller_1 = require("./banner.controller");
+const goal_controller_1 = require("./goal.controller");
 const cloudinary_1 = require("../../config/cloudinary");
 const authMiddleware_1 = require("../../middlewares/authMiddleware");
 const router = express_1.default.Router();
 /**
  * @swagger
- * /banners:
+ * tags:
+ *   - name: Goals
+ *     description: Goal management
+ */
+/**
+ * @swagger
+ * /goals:
  *   post:
- *     summary: Create a banner
+ *     summary: Create a goal
  *     tags:
- *       - Banners
+ *       - Goals
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -27,28 +33,35 @@ const router = express_1.default.Router();
  *             properties:
  *               title:
  *                 type: string
- *               file:
+ *               subtitle:
+ *                 type: string
+ *               section1Title:
+ *                 type: string
+ *               section1Description:
+ *                 type: string
+ *               section1Icon:
  *                 type: string
  *                 format: binary
- *                 description: Banner image
- *               stock:
- *                 type: integer
- *                 description: Google review count
- *               tag:
+ *               section2Title:
+ *                 type: string
+ *               section2Description:
+ *                 type: string
+ *               section2Icon:
  *                 type: string
  *                 format: binary
- *                 description: Certification logo
- *               description:
+ *               section3Title:
  *                 type: string
- *               meta:
+ *               section3Description:
  *                 type: string
- *                 description: Meta title
- *               description2:
+ *               section3Icon:
  *                 type: string
- *                 description: Meta description
- *               metaTag:
+ *                 format: binary
+ *               metaTitle:
  *                 type: string
- *                 description: Meta keywords
+ *               metaDescription:
+ *                 type: string
+ *               metaKeywords:
+ *                 type: string
  *               status:
  *                 type: string
  *                 enum: [active, inactive]
@@ -56,19 +69,22 @@ const router = express_1.default.Router();
  *                 type: integer
  *     responses:
  *       201:
- *         description: Banner created
+ *         description: Goal created
  *       400:
  *         description: Validation error
  */
-// Create a new banner with image uploads (banner image and certification logo)
-router.post('/', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fields([{ name: 'file', maxCount: 1 }, { name: 'tag', maxCount: 1 }]), banner_controller_1.createBanner);
+router.post('/', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fields([
+    { name: 'section1Icon', maxCount: 1 },
+    { name: 'section2Icon', maxCount: 1 },
+    { name: 'section3Icon', maxCount: 1 },
+]), goal_controller_1.createGoal);
 /**
  * @swagger
- * /banners:
+ * /goals:
  *   get:
- *     summary: Get all banners
+ *     summary: Get all goals
  *     tags:
- *       - Banners
+ *       - Goals
  *     parameters:
  *       - in: query
  *         name: status
@@ -78,16 +94,16 @@ router.post('/', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fields
  *         description: Filter by status
  *     responses:
  *       200:
- *         description: List of banners
+ *         description: List of goals
  */
-router.get('/', banner_controller_1.getAllBanners);
+router.get('/', goal_controller_1.getAllGoals);
 /**
  * @swagger
- * /banners/{id}:
+ * /goals/{id}:
  *   get:
- *     summary: Get banner by ID
+ *     summary: Get goal by ID
  *     tags:
- *       - Banners
+ *       - Goals
  *     parameters:
  *       - in: path
  *         name: id
@@ -96,18 +112,18 @@ router.get('/', banner_controller_1.getAllBanners);
  *           type: string
  *     responses:
  *       200:
- *         description: Banner details
+ *         description: Goal details
  *       404:
  *         description: Not found
  */
-router.get('/:id', banner_controller_1.getBannerById);
+router.get('/:id', goal_controller_1.getGoalById);
 /**
  * @swagger
- * /banners/{id}:
+ * /goals/{id}:
  *   put:
- *     summary: Update a banner
+ *     summary: Update a goal
  *     tags:
- *       - Banners
+ *       - Goals
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -125,21 +141,34 @@ router.get('/:id', banner_controller_1.getBannerById);
  *             properties:
  *               title:
  *                 type: string
- *               file:
+ *               subtitle:
+ *                 type: string
+ *               section1Title:
+ *                 type: string
+ *               section1Description:
+ *                 type: string
+ *               section1Icon:
  *                 type: string
  *                 format: binary
- *               tag:
+ *               section2Title:
+ *                 type: string
+ *               section2Description:
+ *                 type: string
+ *               section2Icon:
  *                 type: string
  *                 format: binary
- *               stock:
- *                 type: integer
- *               description:
+ *               section3Title:
  *                 type: string
- *               meta:
+ *               section3Description:
  *                 type: string
- *               description2:
+ *               section3Icon:
  *                 type: string
- *               metaTag:
+ *                 format: binary
+ *               metaTitle:
+ *                 type: string
+ *               metaDescription:
+ *                 type: string
+ *               metaKeywords:
  *                 type: string
  *               status:
  *                 type: string
@@ -148,19 +177,22 @@ router.get('/:id', banner_controller_1.getBannerById);
  *                 type: integer
  *     responses:
  *       200:
- *         description: Banner updated
+ *         description: Goal updated
  *       404:
  *         description: Not found
  */
-// Update a banner by ID with optional image uploads
-router.put('/:id', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fields([{ name: 'file', maxCount: 1 }, { name: 'tag', maxCount: 1 }]), banner_controller_1.updateBannerById);
+router.put('/:id', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fields([
+    { name: 'section1Icon', maxCount: 1 },
+    { name: 'section2Icon', maxCount: 1 },
+    { name: 'section3Icon', maxCount: 1 },
+]), goal_controller_1.updateGoalById);
 /**
  * @swagger
- * /banners/{id}:
+ * /goals/{id}:
  *   delete:
- *     summary: Delete (soft) a banner
+ *     summary: Delete (soft) a goal
  *     tags:
- *       - Banners
+ *       - Goals
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -171,9 +203,9 @@ router.put('/:id', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fiel
  *           type: string
  *     responses:
  *       200:
- *         description: Banner deleted
+ *         description: Goal deleted
  *       404:
  *         description: Not found
  */
-router.delete('/:id', (0, authMiddleware_1.auth)('admin'), banner_controller_1.deleteBannerById);
-exports.bannerRouter = router;
+router.delete('/:id', (0, authMiddleware_1.auth)('admin'), goal_controller_1.deleteGoalById);
+exports.goalRouter = router;

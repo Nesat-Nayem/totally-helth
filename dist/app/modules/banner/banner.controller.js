@@ -15,24 +15,33 @@ const banner_validation_1 = require("./banner.validation");
 const appError_1 = require("../../errors/appError");
 const cloudinary_1 = require("../../config/cloudinary");
 const createBanner = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c, _d, _e, _f, _g;
     try {
-        const { title, isActive, order } = req.body;
-        // If image is uploaded through multer middleware, req.file will be available
-        if (!req.file) {
-            next(new appError_1.appError("Banner image is required", 400));
+        const { title, stock, description, meta, description2, metaTag, status, order, } = req.body;
+        const files = req.files;
+        const imageFile = (_a = files === null || files === void 0 ? void 0 : files.file) === null || _a === void 0 ? void 0 : _a[0];
+        const certLogoFile = (_b = files === null || files === void 0 ? void 0 : files.tag) === null || _b === void 0 ? void 0 : _b[0];
+        if (!imageFile) {
+            next(new appError_1.appError("Banner image (file) is required", 400));
             return;
         }
-        // Get the image URL from req.file
-        const image = req.file.path;
-        // Validate the input
-        const validatedData = banner_validation_1.bannerValidation.parse({
+        if (!certLogoFile) {
+            next(new appError_1.appError("Certification logo (tag) is required", 400));
+            return;
+        }
+        const payload = {
             title,
-            image,
-            isActive: isActive === 'true' || isActive === true,
-            order: order ? parseInt(order) : undefined
-        });
-        // Create a new banner
+            image: imageFile.path,
+            certLogo: certLogoFile.path,
+            description,
+            metaTitle: meta,
+            metaDescription: description2,
+            metaKeywords: metaTag,
+            googleReviewCount: stock ? parseInt(stock, 10) : 0,
+            status: status === 'inactive' ? 'inactive' : 'active',
+            order: order ? parseInt(order, 10) : 0,
+        };
+        const validatedData = banner_validation_1.bannerValidation.parse(payload);
         const banner = new banner_model_1.Banner(validatedData);
         yield banner.save();
         res.status(201).json({
@@ -44,12 +53,12 @@ const createBanner = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         return;
     }
     catch (error) {
-        // If error is during image upload, delete the uploaded image if any
-        if ((_a = req.file) === null || _a === void 0 ? void 0 : _a.path) {
-            const publicId = (_b = req.file.path.split('/').pop()) === null || _b === void 0 ? void 0 : _b.split('.')[0];
-            if (publicId) {
+        const files = req.files;
+        const uploadedPaths = [(_d = (_c = files === null || files === void 0 ? void 0 : files.file) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.path, (_f = (_e = files === null || files === void 0 ? void 0 : files.tag) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.path].filter(Boolean);
+        for (const p of uploadedPaths) {
+            const publicId = (_g = p.split('/').pop()) === null || _g === void 0 ? void 0 : _g.split('.')[0];
+            if (publicId)
                 yield cloudinary_1.cloudinary.uploader.destroy(`restaurant-banners/${publicId}`);
-            }
         }
         next(error);
     }
@@ -57,11 +66,11 @@ const createBanner = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
 exports.createBanner = createBanner;
 const getAllBanners = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Get only active banners if requested
-        const { active } = req.query;
+        // Optional status filter (?status=active|inactive)
+        const { status } = req.query;
         const filter = { isDeleted: false };
-        if (active === 'true') {
-            filter.isActive = true;
+        if (status === 'active' || status === 'inactive') {
+            filter.status = status;
         }
         const banners = yield banner_model_1.Banner.find(filter).sort({ order: 1, createdAt: -1 });
         if (banners.length === 0) {
@@ -109,10 +118,10 @@ const getBannerById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
 });
 exports.getBannerById = getBannerById;
 const updateBannerById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     try {
         const bannerId = req.params.id;
-        const { title, isActive, order } = req.body;
+        const { title, status, order, stock, description, meta, description2, metaTag } = req.body;
         // Find the banner to update
         const banner = yield banner_model_1.Banner.findOne({
             _id: bannerId,
@@ -127,21 +136,41 @@ const updateBannerById = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         if (title !== undefined) {
             updateData.title = title;
         }
-        if (isActive !== undefined) {
-            updateData.isActive = isActive === 'true' || isActive === true;
+        if (status !== undefined) {
+            updateData.status = status === 'inactive' ? 'inactive' : 'active';
         }
         if (order !== undefined) {
-            updateData.order = parseInt(order);
+            updateData.order = parseInt(order, 10);
         }
+        if (stock !== undefined) {
+            updateData.googleReviewCount = parseInt(stock, 10);
+        }
+        if (description !== undefined)
+            updateData.description = description;
+        if (meta !== undefined)
+            updateData.metaTitle = meta;
+        if (description2 !== undefined)
+            updateData.metaDescription = description2;
+        if (metaTag !== undefined)
+            updateData.metaKeywords = metaTag;
         // If there's a new image
-        if (req.file) {
-            updateData.image = req.file.path;
-            // Delete the old image from cloudinary if it exists
+        const files = req.files;
+        const imageFile = (_a = files === null || files === void 0 ? void 0 : files.file) === null || _a === void 0 ? void 0 : _a[0];
+        const certLogoFile = (_b = files === null || files === void 0 ? void 0 : files.tag) === null || _b === void 0 ? void 0 : _b[0];
+        if (imageFile) {
+            updateData.image = imageFile.path;
             if (banner.image) {
-                const publicId = (_a = banner.image.split('/').pop()) === null || _a === void 0 ? void 0 : _a.split('.')[0];
-                if (publicId) {
+                const publicId = (_c = banner.image.split('/').pop()) === null || _c === void 0 ? void 0 : _c.split('.')[0];
+                if (publicId)
                     yield cloudinary_1.cloudinary.uploader.destroy(`restaurant-banners/${publicId}`);
-                }
+            }
+        }
+        if (certLogoFile) {
+            updateData.certLogo = certLogoFile.path;
+            if (banner.certLogo) {
+                const publicId = (_d = banner.certLogo.split('/').pop()) === null || _d === void 0 ? void 0 : _d.split('.')[0];
+                if (publicId)
+                    yield cloudinary_1.cloudinary.uploader.destroy(`restaurant-banners/${publicId}`);
             }
         }
         // Validate the update data
@@ -168,11 +197,12 @@ const updateBannerById = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     }
     catch (error) {
         // If error occurs and image was uploaded, delete it
-        if ((_b = req.file) === null || _b === void 0 ? void 0 : _b.path) {
-            const publicId = (_c = req.file.path.split('/').pop()) === null || _c === void 0 ? void 0 : _c.split('.')[0];
-            if (publicId) {
+        const files = req.files;
+        const uploadedPaths = [(_f = (_e = files === null || files === void 0 ? void 0 : files.file) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.path, (_h = (_g = files === null || files === void 0 ? void 0 : files.tag) === null || _g === void 0 ? void 0 : _g[0]) === null || _h === void 0 ? void 0 : _h.path].filter(Boolean);
+        for (const p of uploadedPaths) {
+            const publicId = (_j = p.split('/').pop()) === null || _j === void 0 ? void 0 : _j.split('.')[0];
+            if (publicId)
                 yield cloudinary_1.cloudinary.uploader.destroy(`restaurant-banners/${publicId}`);
-            }
         }
         next(error);
     }
