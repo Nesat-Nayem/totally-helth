@@ -22,6 +22,31 @@ const options: swaggerJSDoc.Options = {
         url: 'http://localhost:8080',
         description: 'Development server',
       },
+
+      {
+        url: 'https://api.atpuae.com',
+        description: 'Production server',
+      },
+    ],
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
+    tags: [
+      {
+        name: 'Authentication',
+        description: 'Authentication related endpoints',
+      },
+
+      {
+        name: 'Users',
+        description: 'User management endpoints',
+      },
+      {
+        name: 'OTP',
+        description: 'OTP verification endpoints',
+      },
     ],
     components: {
       securitySchemes: {
@@ -173,15 +198,16 @@ const options: swaggerJSDoc.Options = {
         },
       },
     },
-    security: [
-      {
-        bearerAuth: [],
-      },
-    ],
+    // security: [
+    //   {
+    //     bearerAuth: [],
+    //   },
+    // ],
   },
   apis: [
     './src/app/modules/*/*.routes.ts',
     './src/app/modules/*/*.controller.ts',
+    './src/app/modules/*/*.schemas.ts',
     './src/app/routes/index.ts',
   ],
 };
@@ -526,9 +552,35 @@ export const setupSwagger = (app: Application): void => {
       background: #9ca3af;
     }
     
-    /* Remove unnecessary elements */
+    /* Style the authorization section */
     .swagger-ui .scheme-container {
-      display: none;
+      display: block !important;
+      margin: 1rem 0 !important;
+      padding: 1rem !important;
+      background: #f8fafc !important;
+      border: 1px solid #e5e7eb !important;
+      border-radius: 8px !important;
+    }
+    
+    .swagger-ui .auth-wrapper {
+      display: flex !important;
+      align-items: center !important;
+      gap: 1rem !important;
+    }
+    
+    .swagger-ui .authorize {
+      background: #3b82f6 !important;
+      color: white !important;
+      border: none !important;
+      padding: 0.5rem 1rem !important;
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      cursor: pointer !important;
+      transition: background-color 0.2s ease !important;
+    }
+    
+    .swagger-ui .authorize:hover {
+      background: #2563eb !important;
     }
     
     /* Custom header styling */
@@ -568,6 +620,9 @@ export const setupSwagger = (app: Application): void => {
   // JSON endpoint for the swagger spec
   app.get('/api-docs.json', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     res.send(specs);
   });
 
