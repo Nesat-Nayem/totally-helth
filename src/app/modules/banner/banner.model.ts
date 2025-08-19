@@ -12,11 +12,39 @@ const BannerSchema: Schema = new Schema(
       type: String, 
       required: true 
     },
-    
-    
-    isActive: {
-      type: Boolean,
-      default: true
+    certLogo: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    metaTitle: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    metaDescription: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    metaKeywords: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    googleReviewCount: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    status: {
+      type: String,
+      enum: ['active', 'inactive'],
+      default: 'active',
     },
     order: {
       type: Number,
@@ -32,8 +60,13 @@ const BannerSchema: Schema = new Schema(
     timestamps: true,
     toJSON: { 
       transform: function(doc, ret) {
-        ret.createdAt = new Date(ret.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-        ret.updatedAt = new Date(ret.updatedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+        const r: any = ret as any;
+        if (r.createdAt) {
+          r.createdAt = new Date(r.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+        }
+        if (r.updatedAt) {
+          r.updatedAt = new Date(r.updatedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+        }
       }
     }
   }

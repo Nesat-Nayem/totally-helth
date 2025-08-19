@@ -6,12 +6,12 @@ const options: swaggerJSDoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'BigSell E-commerce API',
+      title: 'Totally Helthy API',
       version: '1.0.0',
       // description: 'A comprehensive e-commerce API built with Express.js and TypeScript',
       contact: {
-        name: 'BigSell Team',
-        email: 'support@bigsell.com',
+        name: 'Totally Helthy Team',
+        email: 'support@totallyhelthy.com',
       },
       license: {
         name: 'ISC',
@@ -19,12 +19,12 @@ const options: swaggerJSDoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:8080',
+        url: 'http://localhost:8080/v1/api',
         description: 'Development server',
       },
 
       {
-        url: 'https://api.atpuae.com',
+        url: 'https://api.atpuae.com/v1/api',
         description: 'Production server',
       },
     ],
@@ -601,7 +601,7 @@ export const setupSwagger = (app: Application): void => {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
     explorer: true,
     customCss,
-    customSiteTitle: '🚀 BigSell API Documentation',
+    customSiteTitle: '🚀 Totally Helthy API Documentation',
     customfavIcon: 'https://cdn-icons-png.flaticon.com/512/2721/2721297.png',
     swaggerOptions: {
       persistAuthorization: true,
