@@ -8,16 +8,8 @@ import cors from 'cors';
 
 // parsers
 app.use(express.json());
-app.use(cors({
-    origin: [
-        'https://totallyhelth.apuae.com',
-        'http://localhost:3000',
-        'http://localhost:3001'
-    ],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}))
+app.use(cors())
+
 
 // swagger configuration
 setupSwagger(app);
