@@ -23,11 +23,11 @@ const options = {
         },
         servers: [
             {
-                url: 'http://localhost:8080/v1/api',
+                url: 'http://localhost:8080',
                 description: 'Development server',
             },
             {
-                url: 'https://api.atpuae.com/v1/api',
+                url: 'https://api.atpuae.com',
                 description: 'Production server',
             },
         ],
