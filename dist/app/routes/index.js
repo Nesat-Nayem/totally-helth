@@ -11,6 +11,7 @@ const privacy_policy_routes_1 = require("../modules/privacy-policy/privacy-polic
 const terms_condition_routes_1 = require("../modules/terms-condition/terms-condition.routes");
 const help_support_routes_1 = require("../modules/help-support/help-support.routes");
 const blog_routes_1 = require("../modules/blog/blog.routes");
+const mealPlan_routes_1 = require("../modules/meal-plan/mealPlan.routes");
 const upload_routes_1 = require("../modules/upload/upload.routes");
 const goal_routes_1 = require("../modules/goal/goal.routes");
 const router = (0, express_1.Router)();
@@ -62,6 +63,10 @@ const moduleRoutes = [
     {
         path: "/goals",
         route: goal_routes_1.goalRouter,
+    },
+    {
+        path: "/meal-plans",
+        route: mealPlan_routes_1.mealPlanRouter,
     },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

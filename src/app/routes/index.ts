@@ -9,6 +9,9 @@ import { privacyPolicyRouter } from "../modules/privacy-policy/privacy-policy.ro
 import { TermsConditionRouter } from "../modules/terms-condition/terms-condition.routes";
 import { helpSupportRouter } from "../modules/help-support/help-support.routes";
 import { blogRouter } from "../modules/blog/blog.routes";
+import { mealPlanRouter } from "../modules/meal-plan/mealPlan.routes";
+import { customerRouter } from "../modules/customer/customer.routes";
+import { orderRouter } from "../modules/order/order.routes";
 import { uploadRouter } from "../modules/upload/upload.routes";
 import { goalRouter } from "../modules/goal/goal.routes";
 
@@ -72,6 +75,19 @@ const moduleRoutes = [
   {
     path: "/goals",
     route: goalRouter,
+  },
+
+  {
+    path: "/meal-plans",
+    route: mealPlanRouter,
+  },
+  {
+    path: "/customers",
+    route: customerRouter,
+  },
+  {
+    path: "/orders",
+    route: orderRouter,
   },
 ];
 
