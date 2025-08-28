@@ -24,6 +24,18 @@ export const orderCreateValidation = z.object({
   endDate: z.string().optional(),
   paymentMode: z.string().optional(),
   status: z.enum(['paid', 'unpaid']).default('paid').optional(),
+  // extended fields
+  vatPercent: z.number().min(0).max(100).optional(),
+  vatAmount: z.number().min(0).optional(),
+  discountType: z.enum(['flat', 'percent']).optional(),
+  discountAmount: z.number().min(0).optional(),
+  shippingCharge: z.number().min(0).optional(),
+  rounding: z.number().optional(),
+  payableAmount: z.number().min(0).optional(),
+  receiveAmount: z.number().min(0).optional(),
+  changeAmount: z.number().min(0).optional(),
+  dueAmount: z.number().min(0).optional(),
+  note: z.string().optional(),
 });
 
 export const orderUpdateValidation = orderCreateValidation.partial();
