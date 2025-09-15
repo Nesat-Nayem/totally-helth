@@ -14,6 +14,7 @@ import { customerRouter } from "../modules/customer/customer.routes";
 import { orderRouter } from "../modules/order/order.routes";
 import { uploadRouter } from "../modules/upload/upload.routes";
 import { goalRouter } from "../modules/goal/goal.routes";
+import { branchRouter } from "../modules/branch/branch.routes";
 
 const router = Router();
 const moduleRoutes = [
@@ -80,6 +81,10 @@ const moduleRoutes = [
   {
     path: "/meal-plans",
     route: mealPlanRouter,
+  },
+  {
+    path: "/branches",
+    route: branchRouter,
   },
   {
     path: "/customers",

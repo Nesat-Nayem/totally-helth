@@ -131,7 +131,7 @@ const createQRCode = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             return next(new appError_1.appError(`QR Code for table ${validatedData.tableNumber} in ${hotel.name} already exists.`, 409));
         }
         // Generate QR code data - you might want to encode a URL with hotel and table info
-        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3001";
+        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
         const qrData = `${frontendUrl}/hotel-details/${validatedData.hotelId}?table=${validatedData.tableNumber}&seats=${validatedData.seatNumber}`;
         // Generate QR code with logo
         const qrCodeDataURL = yield generateQRCodeWithLogo(qrData);
@@ -283,7 +283,7 @@ const updateQRCodeById = (req, res, next) => __awaiter(void 0, void 0, void 0, f
             return;
         }
         // Generate new QR code data URL
-        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3001";
+        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
         const qrData = `${frontendUrl}/hotel-details/${validatedData.hotelId}?table=${validatedData.tableNumber}&seats=${validatedData.seatNumber}`;
         // Generate QR code with logo
         const newQrCodeDataURL = yield generateQRCodeWithLogo(qrData);

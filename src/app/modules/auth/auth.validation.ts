@@ -31,7 +31,8 @@ export const authValidation = z.object({
 
 export const loginValidation = z.object({
   email: z.string().email("Invalid email format"),
-  password: z.string()
+  password: z.string(),
+  branchId: z.string().optional(),
 });
 
 export const resetPasswordValidation = z.object({

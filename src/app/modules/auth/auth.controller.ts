@@ -4,6 +4,7 @@ import { RequestHandler } from 'express';
 import { activateUserValidation, authValidation, emailCheckValidation, loginValidation, phoneCheckValidation, requestOtpValidation, resetPasswordValidation, updateUserValidation, verifyOtpValidation } from "./auth.validation";
 import { generateToken } from "../../config/generateToken";
 // import { AdminStaff } from "../admin-staff/admin-staff.model";
+import { Branch } from "../branch/branch.model";
 
 export const singUpController: RequestHandler = async (req, res, next): Promise<void> => {
   try {
@@ -232,7 +233,7 @@ export const updateUser: RequestHandler = async (req, res, next): Promise<void> 
 
 export const loginController: RequestHandler = async (req, res, next): Promise<void> => {
   try {
-    const { email, password } = loginValidation.parse(req.body);
+    const { email, password, branchId } = loginValidation.parse(req.body);
 
     // First try to find in User model
     let user = await User.findOne({ email });
@@ -263,9 +264,18 @@ export const loginController: RequestHandler = async (req, res, next): Promise<v
       return;
     }
 
+    // If branchId is provided, validate it exists
+    let extras: Record<string, any> | undefined = undefined;
+    if (branchId) {
+      const branch = await Branch.findById(branchId);
+      if (!branch) {
+        res.status(400).json({ success: false, statusCode: 400, message: "Invalid branch" });
+        return;
+      }
+      extras = { branchId: branch._id };
+    }
 
-
-    const token = generateToken(user);
+    const token = generateToken(user, extras);
 
     // remove password
     const { password: _, ...userObject } = user.toObject();
@@ -275,7 +285,7 @@ export const loginController: RequestHandler = async (req, res, next): Promise<v
       statusCode: 200,
       message: "User logged in successfully",
       token,
-      data: userObject,
+      data: { ...userObject, ...(extras || {}) },
     });
     return;
   } catch (error: any) {
