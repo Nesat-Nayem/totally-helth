@@ -17,7 +17,7 @@ export const auth = (...requiredRoles: string[]) => {
 
       
       // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string; branchId?: string };
 
       // Find user across different collections
       let user: any = await User.findById(decoded.userId) 
@@ -30,6 +30,9 @@ export const auth = (...requiredRoles: string[]) => {
 
       // Attach user to request
       req.user = user;
+      if (decoded.branchId) {
+        req.branchId = String(decoded.branchId);
+      }
 
       // Role-based authorization
       if (requiredRoles.length > 0 && !requiredRoles.includes(user.role)) {

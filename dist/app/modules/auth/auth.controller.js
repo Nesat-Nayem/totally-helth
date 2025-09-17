@@ -25,6 +25,7 @@ const auth_model_1 = require("./auth.model");
 const auth_validation_1 = require("./auth.validation");
 const generateToken_1 = require("../../config/generateToken");
 // import { AdminStaff } from "../admin-staff/admin-staff.model";
+const branch_model_1 = require("../branch/branch.model");
 const singUpController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, password, img, phone, email, role } = auth_validation_1.authValidation.parse(req.body);
@@ -213,7 +214,7 @@ const updateUser = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
 exports.updateUser = updateUser;
 const loginController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { email, password } = auth_validation_1.loginValidation.parse(req.body);
+        const { email, password, branchId } = auth_validation_1.loginValidation.parse(req.body);
         // First try to find in User model
         let user = yield auth_model_1.User.findOne({ email });
         let userType = 'user';
@@ -239,7 +240,17 @@ const loginController = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             });
             return;
         }
-        const token = (0, generateToken_1.generateToken)(user);
+        // If branchId is provided, validate it exists
+        let extras = undefined;
+        if (branchId) {
+            const branch = yield branch_model_1.Branch.findById(branchId);
+            if (!branch) {
+                res.status(400).json({ success: false, statusCode: 400, message: "Invalid branch" });
+                return;
+            }
+            extras = { branchId: branch._id };
+        }
+        const token = (0, generateToken_1.generateToken)(user, extras);
         // remove password
         const _a = user.toObject(), { password: _ } = _a, userObject = __rest(_a, ["password"]);
         res.json({
@@ -247,7 +258,7 @@ const loginController = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             statusCode: 200,
             message: "User logged in successfully",
             token,
-            data: userObject,
+            data: Object.assign(Object.assign({}, userObject), (extras || {})),
         });
         return;
     }

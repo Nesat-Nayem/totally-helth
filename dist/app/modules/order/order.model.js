@@ -36,151 +36,67 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Order = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const OrderItemSchema = new mongoose_1.Schema({
-    menuItem: {
-        type: String,
-        required: true
-    },
-    hotelId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Hotel',
-        required: true
-    },
-    quantity: {
-        type: Number,
-        required: true,
-        min: 1
-    },
-    size: {
-        type: String,
-        required: true
-    },
-    addons: [{
-            key: {
-                type: String,
-                required: true
-            },
-            quantity: {
-                type: Number,
-                required: true,
-                min: 1
-            }
-        }],
-    price: {
-        type: Number,
-        required: true
-    },
-    specialInstructions: {
-        type: String,
-        default: ""
-    },
-    orderedBy: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    status: {
-        type: String,
-        enum: ['pending', 'preparing', 'served', 'cancelled'],
-        default: 'pending'
-    },
-    paymentMethod: {
-        type: String,
-        enum: ['cash', 'razorpay', 'manual'],
-        required: true
-    },
-    itemPaymentStatus: {
-        type: String,
-        enum: ['pending', 'paid'],
-        default: 'pending'
-    }
-}, { _id: true });
-const CreatedBySchema = new mongoose_1.Schema({
-    id: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        required: true
-    },
-    role: {
-        type: String,
-        enum: ['staff', 'user', 'admin'],
-        required: true
-    }
+    productId: { type: String, trim: true },
+    title: { type: String, required: true, trim: true },
+    price: { type: Number, required: true, min: 0 },
+    qty: { type: Number, required: true, min: 1 },
 }, { _id: false });
 const OrderSchema = new mongoose_1.Schema({
-    users: [{
-            type: mongoose_1.Schema.Types.ObjectId,
-            ref: 'User'
-        }],
-    items: [OrderItemSchema],
-    subtotal: {
-        type: Number,
-        required: true
+    orderNo: { type: String, trim: true },
+    invoiceNo: { type: String, required: true, trim: true },
+    date: { type: Date, required: true },
+    customer: {
+        id: { type: String, trim: true },
+        name: { type: String, trim: true },
+        phone: { type: String, trim: true },
     },
-    cgstAmount: {
-        type: Number,
-        required: true
+    items: { type: [OrderItemSchema], required: true },
+    extraItems: {
+        type: [
+            new mongoose_1.Schema({
+                name: { type: String, required: true, trim: true },
+                price: { type: Number, required: true, min: 0 },
+                qty: { type: Number, required: true, min: 1, default: 1 },
+            }, { _id: false }),
+        ],
+        default: [],
     },
-    sgstAmount: {
-        type: Number,
-        required: true
-    },
-    serviceCharge: {
-        type: Number,
-        required: true
-    },
-    totalAmount: {
-        type: Number,
-        required: true
-    },
-    status: {
-        type: String,
-        enum: ['pending', 'processing', 'delivered', 'cancelled'],
-        default: 'pending'
-    },
-    paymentDetails: {
-        type: mongoose_1.Schema.Types.Mixed,
-        default: {}
-    },
-    paymentMethod: {
-        type: String,
-        enum: ['cash', 'razorpay', 'manual'],
-        required: true
-    },
-    paymentStatus: {
-        type: String,
-        enum: ['pending', 'partially-paid', 'paid', 'failed'],
-        default: 'pending'
-    },
-    tableNumber: {
-        type: String,
-        trim: true,
-        default: null,
-    },
-    paymentId: {
-        type: String
-    },
-    couponCode: {
-        type: String,
-        default: null
-    },
-    discountAmount: {
-        type: Number,
-        default: 0
-    },
-    amountPaid: {
-        type: Number,
-        default: 0
-    },
-    createdBy: {
-        type: CreatedBySchema,
-        default: null
-    }
+    subTotal: { type: Number, required: true, min: 0 },
+    total: { type: Number, required: true, min: 0 },
+    vatPercent: { type: Number, min: 0 },
+    vatAmount: { type: Number, min: 0 },
+    discountType: { type: String, enum: ['flat', 'percent'] },
+    discountAmount: { type: Number, min: 0 },
+    shippingCharge: { type: Number, min: 0 },
+    rounding: { type: Number, default: 0 },
+    payableAmount: { type: Number, min: 0 },
+    receiveAmount: { type: Number, min: 0 },
+    changeAmount: { type: Number, min: 0 },
+    dueAmount: { type: Number, min: 0 },
+    note: { type: String, trim: true },
+    startDate: { type: String, trim: true },
+    endDate: { type: String, trim: true },
+    paymentMode: { type: String, trim: true },
+    branchId: { type: String, trim: true },
+    brand: { type: String, trim: true },
+    aggregatorId: { type: String, trim: true },
+    paymentMethodId: { type: String, trim: true },
+    status: { type: String, enum: ['paid', 'unpaid'], default: 'paid' },
+    isDeleted: { type: Boolean, default: false },
 }, {
     timestamps: true,
     toJSON: {
         transform: function (doc, ret) {
-            ret.createdAt = new Date(ret.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-            ret.updatedAt = new Date(ret.updatedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-        }
-    }
+            const r = ret;
+            if (r.createdAt) {
+                r.createdAt = new Date(r.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+            }
+            if (r.updatedAt) {
+                r.updatedAt = new Date(r.updatedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+            }
+        },
+    },
 });
+OrderSchema.index({ invoiceNo: 'text', orderNo: 'text', 'customer.name': 'text' });
+OrderSchema.index({ date: 1, status: 1, branchId: 1, brand: 1 });
 exports.Order = mongoose_1.default.model('Order', OrderSchema);

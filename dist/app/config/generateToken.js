@@ -7,14 +7,8 @@ exports.generateToken = void 0;
 // utils/generateToken.ts
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 // import { IStaff } from '../modules/staff/staff.model';
-const generateToken = (user) => {
-    const payload = {
-        userId: user._id,
-        name: user.name,
-        phone: user.phone,
-        role: user.role,
-        // address: user.address,
-    };
+const generateToken = (user, extras) => {
+    const payload = Object.assign({ userId: user._id, name: user.name, phone: user.phone, role: user.role }, (extras || {}));
     return jsonwebtoken_1.default.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 exports.generateToken = generateToken;

@@ -26,7 +26,8 @@ exports.authValidation = zod_1.z.object({
 });
 exports.loginValidation = zod_1.z.object({
     email: zod_1.z.string().email("Invalid email format"),
-    password: zod_1.z.string()
+    password: zod_1.z.string(),
+    branchId: zod_1.z.string().optional(),
 });
 exports.resetPasswordValidation = zod_1.z.object({
     phone: zod_1.z.string().refine(validateIndianMobile, {

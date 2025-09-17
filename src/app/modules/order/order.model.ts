@@ -13,6 +13,7 @@ const OrderItemSchema = new Schema<IOrderItem>(
 
 const OrderSchema: Schema = new Schema(
   {
+    orderNo: { type: String, trim: true },
     invoiceNo: { type: String, required: true, trim: true },
     date: { type: Date, required: true },
     customer: {
@@ -21,6 +22,19 @@ const OrderSchema: Schema = new Schema(
       phone: { type: String, trim: true },
     },
     items: { type: [OrderItemSchema], required: true },
+    extraItems: {
+      type: [
+        new Schema(
+          {
+            name: { type: String, required: true, trim: true },
+            price: { type: Number, required: true, min: 0 },
+            qty: { type: Number, required: true, min: 1, default: 1 },
+          },
+          { _id: false }
+        ),
+      ],
+      default: [],
+    },
     subTotal: { type: Number, required: true, min: 0 },
     total: { type: Number, required: true, min: 0 },
     vatPercent: { type: Number, min: 0 },
@@ -37,6 +51,10 @@ const OrderSchema: Schema = new Schema(
     startDate: { type: String, trim: true },
     endDate: { type: String, trim: true },
     paymentMode: { type: String, trim: true },
+    branchId: { type: String, trim: true },
+    brand: { type: String, trim: true },
+    aggregatorId: { type: String, trim: true },
+    paymentMethodId: { type: String, trim: true },
     status: { type: String, enum: ['paid', 'unpaid'], default: 'paid' },
     isDeleted: { type: Boolean, default: false },
   },
@@ -56,7 +74,7 @@ const OrderSchema: Schema = new Schema(
   }
 );
 
-OrderSchema.index({ invoiceNo: 'text', 'customer.name': 'text' });
-OrderSchema.index({ date: 1, status: 1 });
+OrderSchema.index({ invoiceNo: 'text', orderNo: 'text', 'customer.name': 'text' });
+OrderSchema.index({ date: 1, status: 1, branchId: 1, brand: 1 });
 
 export const Order = mongoose.model<IOrder>('Order', OrderSchema);

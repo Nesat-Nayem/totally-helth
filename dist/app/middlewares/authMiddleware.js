@@ -36,6 +36,9 @@ const auth = (...requiredRoles) => {
             }
             // Attach user to request
             req.user = user;
+            if (decoded.branchId) {
+                req.branchId = String(decoded.branchId);
+            }
             // Role-based authorization
             if (requiredRoles.length > 0 && !requiredRoles.includes(user.role)) {
                 return next(new appError_1.appError("You do not have permission to perform this action", 403));

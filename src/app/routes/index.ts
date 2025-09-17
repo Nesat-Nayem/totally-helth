@@ -15,6 +15,10 @@ import { orderRouter } from "../modules/order/order.routes";
 import { uploadRouter } from "../modules/upload/upload.routes";
 import { goalRouter } from "../modules/goal/goal.routes";
 import { branchRouter } from "../modules/branch/branch.routes";
+import { brandRouter } from "../modules/brand/brand.routes";
+import { aggregatorRouter } from "../modules/aggregator/aggregator.routes";
+import { paymentMethodRouter } from "../modules/payment-method/paymentMethod.routes";
+import { moreOptionRouter } from "../modules/more-option/moreOption.routes";
 
 const router = Router();
 const moduleRoutes = [
@@ -69,7 +73,7 @@ const moduleRoutes = [
   },
 
   {
-    path: "/uploads",
+    path: "/upload",
     route: uploadRouter,
   },
 
@@ -85,6 +89,22 @@ const moduleRoutes = [
   {
     path: "/branches",
     route: branchRouter,
+  },
+  {
+    path: "/brands",
+    route: brandRouter,
+  },
+  {
+    path: "/aggregators",
+    route: aggregatorRouter,
+  },
+  {
+    path: "/payment-methods",
+    route: paymentMethodRouter,
+  },
+  {
+    path: "/more-options",
+    route: moreOptionRouter,
   },
   {
     path: "/customers",

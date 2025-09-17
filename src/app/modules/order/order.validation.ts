@@ -8,21 +8,35 @@ export const orderItemSchema = z.object({
 });
 
 export const orderCreateValidation = z.object({
-  invoiceNo: z.string().min(1),
+  invoiceNo: z.string().min(1).optional(),
   date: z.string().or(z.date()),
-  customer: z
-    .object({
+  customer: z.union([
+    z.string(),
+    z.object({
       id: z.string().optional(),
       name: z.string().min(1),
       phone: z.string().optional(),
     })
-    .optional(),
+  ]).optional(),
   items: z.array(orderItemSchema).min(1),
   subTotal: z.number().nonnegative(),
   total: z.number().nonnegative(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   paymentMode: z.string().optional(),
+  branchId: z.string().optional(),
+  brand: z.string().optional(),
+  aggregatorId: z.string().optional(),
+  paymentMethodId: z.string().optional(),
+  extraItems: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        price: z.number().min(0),
+        qty: z.number().int().positive().default(1),
+      })
+    )
+    .optional(),
   status: z.enum(['paid', 'unpaid']).default('paid').optional(),
   // extended fields
   vatPercent: z.number().min(0).max(100).optional(),

@@ -12,8 +12,15 @@ const terms_condition_routes_1 = require("../modules/terms-condition/terms-condi
 const help_support_routes_1 = require("../modules/help-support/help-support.routes");
 const blog_routes_1 = require("../modules/blog/blog.routes");
 const mealPlan_routes_1 = require("../modules/meal-plan/mealPlan.routes");
+const customer_routes_1 = require("../modules/customer/customer.routes");
+const order_routes_1 = require("../modules/order/order.routes");
 const upload_routes_1 = require("../modules/upload/upload.routes");
 const goal_routes_1 = require("../modules/goal/goal.routes");
+const branch_routes_1 = require("../modules/branch/branch.routes");
+const brand_routes_1 = require("../modules/brand/brand.routes");
+const aggregator_routes_1 = require("../modules/aggregator/aggregator.routes");
+const paymentMethod_routes_1 = require("../modules/payment-method/paymentMethod.routes");
+const moreOption_routes_1 = require("../modules/more-option/moreOption.routes");
 const router = (0, express_1.Router)();
 const moduleRoutes = [
     {
@@ -67,6 +74,34 @@ const moduleRoutes = [
     {
         path: "/meal-plans",
         route: mealPlan_routes_1.mealPlanRouter,
+    },
+    {
+        path: "/branches",
+        route: branch_routes_1.branchRouter,
+    },
+    {
+        path: "/brands",
+        route: brand_routes_1.brandRouter,
+    },
+    {
+        path: "/aggregators",
+        route: aggregator_routes_1.aggregatorRouter,
+    },
+    {
+        path: "/payment-methods",
+        route: paymentMethod_routes_1.paymentMethodRouter,
+    },
+    {
+        path: "/more-options",
+        route: moreOption_routes_1.moreOptionRouter,
+    },
+    {
+        path: "/customers",
+        route: customer_routes_1.customerRouter,
+    },
+    {
+        path: "/orders",
+        route: order_routes_1.orderRouter,
     },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

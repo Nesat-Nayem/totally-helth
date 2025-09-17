@@ -2,13 +2,53 @@ import { Request, Response } from 'express';
 import { ZodError } from 'zod';
 import { Order } from './order.model';
 import { orderCreateValidation, orderUpdateValidation } from './order.validation';
+import { Counter } from '../../services/counter.model';
+import { userInterface } from '../../middlewares/userInterface';
+
+function dateStamp() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}${m}${dd}`;
+}
+
+async function nextSeq(key: string) {
+  const doc = await Counter.findOneAndUpdate(
+    { key },
+    { $inc: { seq: 1 } },
+    { upsert: true, new: true }
+  );
+  return doc.seq;
+}
 
 export const createOrder = async (req: Request, res: Response): Promise<void> => {
   try {
     const payload = orderCreateValidation.parse(req.body);
     // normalize date
     const date = new Date(payload.date as any);
-    const created = await Order.create({ ...payload, date });
+
+    // invoice / order number auto-generation if missing
+    const stamp = dateStamp();
+    let invoiceNo = payload.invoiceNo;
+    if (!invoiceNo) {
+      const s = await nextSeq(`INV-${stamp}`);
+      invoiceNo = `INV-${stamp}-${String(s).padStart(6, '0')}`;
+    }
+    const ordSeq = await nextSeq(`ORD-${stamp}`);
+    const orderNo = `ORD-${stamp}-${String(ordSeq).padStart(6, '0')}`;
+
+    // branch from token (if available)
+    const reqWithUser = req as userInterface;
+    const branchId = payload.branchId || reqWithUser.branchId;
+
+    const created = await Order.create({
+      ...payload,
+      invoiceNo,
+      orderNo,
+      branchId,
+      date,
+    });
     res.status(201).json({ message: 'Order created', data: created });
   } catch (err: any) {
     if (err instanceof ZodError) {
