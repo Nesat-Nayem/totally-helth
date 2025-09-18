@@ -19,6 +19,8 @@ import { brandRouter } from "../modules/brand/brand.routes";
 import { aggregatorRouter } from "../modules/aggregator/aggregator.routes";
 import { paymentMethodRouter } from "../modules/payment-method/paymentMethod.routes";
 import { moreOptionRouter } from "../modules/more-option/moreOption.routes";
+import { menuCategoryRouter } from "../modules/menu-category/menuCategory.routes";
+import { menuRouter } from "../modules/menu/menu.routes";
 
 const router = Router();
 const moduleRoutes = [
@@ -85,6 +87,14 @@ const moduleRoutes = [
   {
     path: "/meal-plans",
     route: mealPlanRouter,
+  },
+  {
+    path: "/menu-categories",
+    route: menuCategoryRouter,
+  },
+  {
+    path: "/menus",
+    route: menuRouter,
   },
   {
     path: "/branches",

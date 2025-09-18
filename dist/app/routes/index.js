@@ -21,6 +21,8 @@ const brand_routes_1 = require("../modules/brand/brand.routes");
 const aggregator_routes_1 = require("../modules/aggregator/aggregator.routes");
 const paymentMethod_routes_1 = require("../modules/payment-method/paymentMethod.routes");
 const moreOption_routes_1 = require("../modules/more-option/moreOption.routes");
+const menuCategory_routes_1 = require("../modules/menu-category/menuCategory.routes");
+const menu_routes_1 = require("../modules/menu/menu.routes");
 const router = (0, express_1.Router)();
 const moduleRoutes = [
     {
@@ -64,7 +66,7 @@ const moduleRoutes = [
         route: blog_routes_1.blogRouter,
     },
     {
-        path: "/uploads",
+        path: "/upload",
         route: upload_routes_1.uploadRouter,
     },
     {
@@ -74,6 +76,14 @@ const moduleRoutes = [
     {
         path: "/meal-plans",
         route: mealPlan_routes_1.mealPlanRouter,
+    },
+    {
+        path: "/menu-categories",
+        route: menuCategory_routes_1.menuCategoryRouter,
+    },
+    {
+        path: "/menus",
+        route: menu_routes_1.menuRouter,
     },
     {
         path: "/branches",
