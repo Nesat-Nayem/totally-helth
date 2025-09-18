@@ -13,6 +13,16 @@ export interface IMenu extends Document {
   branches?: string[]; // Branch _ids
   status?: 'active' | 'inactive';
   isDeleted?: boolean;
+  // Nutrition fields
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fibre?: number;
+  sugars?: number;
+  sodium?: number;
+  iron?: number;
+  calcium?: number;
+  vitaminC?: number;
 }
 
 const MenuSchema = new Schema<IMenu>(
@@ -29,6 +39,16 @@ const MenuSchema = new Schema<IMenu>(
     branches: [{ type: String, trim: true }],
     status: { type: String, enum: ['active', 'inactive'], default: 'active' },
     isDeleted: { type: Boolean, default: false },
+    // Nutrition fields
+    calories: { type: Number, min: 0 },
+    protein: { type: Number, min: 0 },
+    carbs: { type: Number, min: 0 },
+    fibre: { type: Number, min: 0 },
+    sugars: { type: Number, min: 0 },
+    sodium: { type: Number, min: 0 },
+    iron: { type: Number, min: 0 },
+    calcium: { type: Number, min: 0 },
+    vitaminC: { type: Number, min: 0 },
   },
   {
     timestamps: true,
