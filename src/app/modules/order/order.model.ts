@@ -51,6 +51,19 @@ const OrderSchema: Schema = new Schema(
     startDate: { type: String, trim: true },
     endDate: { type: String, trim: true },
     paymentMode: { type: String, trim: true },
+    salesType: { type: String, enum: ['restaurant', 'online', 'membership'] },
+    payments: {
+      type: [
+        new Schema(
+          {
+            type: { type: String, enum: ['Cash', 'Card', 'Gateway'], trim: true },
+            amount: { type: Number, min: 0 },
+          },
+          { _id: false }
+        ),
+      ],
+      default: [],
+    },
     branchId: { type: String, trim: true },
     brand: { type: String, trim: true },
     aggregatorId: { type: String, trim: true },

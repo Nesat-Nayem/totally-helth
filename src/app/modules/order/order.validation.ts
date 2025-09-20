@@ -38,6 +38,15 @@ export const orderCreateValidation = z.object({
     )
     .optional(),
   status: z.enum(['paid', 'unpaid']).default('paid').optional(),
+  salesType: z.enum(['restaurant', 'online', 'membership']).optional(),
+  payments: z
+    .array(
+      z.object({
+        type: z.enum(['Cash', 'Card', 'Gateway']),
+        amount: z.number().min(0),
+      })
+    )
+    .optional(),
   // extended fields
   vatPercent: z.number().min(0).max(100).optional(),
   vatAmount: z.number().min(0).optional(),

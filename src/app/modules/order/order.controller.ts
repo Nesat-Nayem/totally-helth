@@ -61,9 +61,18 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
 export const getOrders = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { q = '', page = '1', limit = '20', status, startDate, endDate } = req.query as any;
+    const { q = '', page = '1', limit = '20', status, startDate, endDate, salesType } = req.query as any;
     const filter: any = { isDeleted: false };
     if (status) filter.status = status;
+    if (salesType) {
+      const types = String(salesType)
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (types.length > 0) {
+        filter.salesType = { $in: types };
+      }
+    }
     if (startDate || endDate) {
       filter.date = {};
       if (startDate) filter.date.$gte = new Date(startDate);
