@@ -47,6 +47,19 @@ export const orderCreateValidation = z.object({
       })
     )
     .optional(),
+  membership: z
+    .object({
+      hold: z.boolean().optional(),
+      holdRanges: z
+        .array(
+          z.object({
+            from: z.string(),
+            to: z.string().optional(),
+          })
+        )
+        .optional(),
+    })
+    .optional(),
   // extended fields
   vatPercent: z.number().min(0).max(100).optional(),
   vatAmount: z.number().min(0).optional(),

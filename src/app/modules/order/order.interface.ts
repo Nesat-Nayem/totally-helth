@@ -36,6 +36,16 @@ export interface IOrder extends Document {
   paymentMode?: string;
   salesType?: 'restaurant' | 'online' | 'membership';
   payments?: Array<{ type: 'Cash' | 'Card' | 'Gateway'; amount: number }>;
+  membership?: {
+    hold?: boolean;
+    holdRanges?: Array<{ from: string; to?: string }>;
+  };
+  membershipStats?: {
+    totalMeals: number;
+    consumedMeals: number;
+    pendingMeals: number;
+    isOnHold: boolean;
+  };
   branchId?: string;
   brand?: string;
   aggregatorId?: string;

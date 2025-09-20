@@ -59,9 +59,83 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+function todayYmd() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+
+export const holdMembership = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = req.params.id;
+    const order = await Order.findOne({ _id: id, isDeleted: false });
+    if (!order) {
+      res.status(404).json({ message: 'Order not found' });
+      return;
+    }
+    if (order.get('salesType') !== 'membership') {
+      res.status(400).json({ message: 'Not a membership order' });
+      return;
+    }
+    const mem: any = order.get('membership') || {};
+    if (mem.hold) {
+      res.json({ message: 'Already on hold', data: order });
+      return;
+    }
+    const ranges: any[] = Array.isArray(mem.holdRanges) ? mem.holdRanges : [];
+    // if last range is open, do nothing, else push new open range starting today
+    if (!(ranges.length > 0 && !ranges[ranges.length - 1].to)) {
+      ranges.push({ from: todayYmd() });
+    }
+    mem.hold = true;
+    mem.holdRanges = ranges;
+    order.set('membership', mem);
+    await order.save();
+    res.json({ message: 'Membership put on hold', data: order });
+  } catch (err: any) {
+    res.status(500).json({ message: err?.message || 'Failed to hold membership' });
+  }
+};
+
+export const unholdMembership = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = req.params.id;
+    const order = await Order.findOne({ _id: id, isDeleted: false });
+    if (!order) {
+      res.status(404).json({ message: 'Order not found' });
+      return;
+    }
+    if (order.get('salesType') !== 'membership') {
+      res.status(400).json({ message: 'Not a membership order' });
+      return;
+    }
+    const mem: any = order.get('membership') || {};
+    if (!mem.hold) {
+      res.json({ message: 'Membership already active', data: order });
+      return;
+    }
+    const ranges: any[] = Array.isArray(mem.holdRanges) ? mem.holdRanges : [];
+    if (ranges.length === 0 || ranges[ranges.length - 1].to) {
+      // create a small zero-length hold if none open, else just proceed
+      ranges.push({ from: todayYmd(), to: todayYmd() });
+    } else {
+      ranges[ranges.length - 1].to = todayYmd();
+    }
+    mem.hold = false;
+    mem.holdRanges = ranges;
+    order.set('membership', mem);
+    await order.save();
+    res.json({ message: 'Membership resumed', data: order });
+  } catch (err: any) {
+    res.status(500).json({ message: err?.message || 'Failed to unhold membership' });
+  }
+};
+
 export const getOrders = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { q = '', page = '1', limit = '20', status, startDate, endDate, salesType } = req.query as any;
+    const { q = '', page = '1', limit = '20', status, startDate, endDate, salesType, customerId } = req.query as any;
     const filter: any = { isDeleted: false };
     if (status) filter.status = status;
     if (salesType) {
@@ -72,6 +146,9 @@ export const getOrders = async (req: Request, res: Response): Promise<void> => {
       if (types.length > 0) {
         filter.salesType = { $in: types };
       }
+    }
+    if (customerId) {
+      filter['customer.id'] = String(customerId);
     }
     if (startDate || endDate) {
       filter.date = {};

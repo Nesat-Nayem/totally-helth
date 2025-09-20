@@ -1,6 +1,6 @@
 import express from 'express';
 import { auth } from '../../middlewares/authMiddleware';
-import { createOrder, deleteOrderById, getOrderById, getOrders, updateOrderById } from './order.controller';
+import { createOrder, deleteOrderById, getOrderById, getOrders, updateOrderById, holdMembership, unholdMembership } from './order.controller';
 
 const router = express.Router();
 
@@ -9,6 +9,10 @@ router.post('/', auth('admin'), createOrder);
 
 // List orders (admin)
 router.get('/', auth('admin'), getOrders);
+
+// Membership hold/unhold (admin)
+router.post('/:id/membership/hold', auth('admin'), holdMembership);
+router.post('/:id/membership/unhold', auth('admin'), unholdMembership);
 
 // Get by id (admin)
 router.get('/:id', auth('admin'), getOrderById);

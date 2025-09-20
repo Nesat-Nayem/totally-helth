@@ -64,6 +64,21 @@ const OrderSchema: Schema = new Schema(
       ],
       default: [],
     },
+    membership: {
+      hold: { type: Boolean, default: false },
+      holdRanges: {
+        type: [
+          new Schema(
+            {
+              from: { type: String, trim: true }, // YYYY-MM-DD
+              to: { type: String, trim: true },
+            },
+            { _id: false }
+          ),
+        ],
+        default: [],
+      },
+    },
     branchId: { type: String, trim: true },
     brand: { type: String, trim: true },
     aggregatorId: { type: String, trim: true },
@@ -81,6 +96,55 @@ const OrderSchema: Schema = new Schema(
         }
         if (r.updatedAt) {
           r.updatedAt = new Date(r.updatedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+        }
+        // add computed membership stats
+        try {
+          if (r.salesType === 'membership' && r.startDate && r.endDate) {
+            const toDateOnly = (d: any) => {
+              const dt = new Date(d);
+              const y = dt.getFullYear();
+              const m = dt.getMonth();
+              const day = dt.getDate();
+              return new Date(y, m, day);
+            };
+            const dayDiffInclusive = (a: Date, b: Date) => {
+              const msPerDay = 24 * 60 * 60 * 1000;
+              return Math.max(0, Math.floor((toDateOnly(b).getTime() - toDateOnly(a).getTime()) / msPerDay) + 1);
+            };
+            const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+
+            const start = toDateOnly(r.startDate);
+            const end = toDateOnly(r.endDate);
+            const today = toDateOnly(new Date());
+            const upto = today < end ? today : end;
+            const totalMeals = dayDiffInclusive(start, end);
+            const activeDaysSoFar = dayDiffInclusive(start, upto);
+
+            // compute hold days within the [start, upto] interval
+            let holdDays = 0;
+            const ranges: Array<{ from: string; to?: string }> = (r.membership?.holdRanges || []) as any;
+            for (const rng of ranges) {
+              const from = toDateOnly(rng.from);
+              const to = rng.to ? toDateOnly(rng.to) : toDateOnly(new Date());
+              // overlap with [start, upto]
+              const overlapStart = from > start ? from : start;
+              const overlapEnd = to < upto ? to : upto;
+              if (overlapEnd >= overlapStart) {
+                holdDays += dayDiffInclusive(overlapStart, overlapEnd);
+              }
+            }
+
+            let consumed = clamp(activeDaysSoFar - holdDays, 0, totalMeals);
+            // if currently on hold, do not count today as consumed if hold started today
+            r.membershipStats = {
+              totalMeals,
+              consumedMeals: consumed,
+              pendingMeals: clamp(totalMeals - consumed, 0, totalMeals),
+              isOnHold: !!r.membership?.hold,
+            };
+          }
+        } catch (e) {
+          // ignore compute errors
         }
       },
     },
