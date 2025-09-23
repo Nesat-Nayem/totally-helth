@@ -2,6 +2,12 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { Application } from 'express';
 
+import dotenv from 'dotenv';
+dotenv.config();
+
+const port = process.env.PORT ? Number(process.env.PORT) : 8080;
+
+
 const options: swaggerJSDoc.Options = {
   definition: {
     openapi: '3.0.0',
@@ -19,7 +25,7 @@ const options: swaggerJSDoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:8080',
+        url: `http://localhost:${port}`,
         description: 'Development server',
       },
 
