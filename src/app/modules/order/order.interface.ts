@@ -34,6 +34,7 @@ export interface IOrder extends Document {
   startDate?: string;
   endDate?: string;
   paymentMode?: string;
+  orderType?: 'DineIn' | 'TakeAway' | 'Delivery';
   salesType?: 'restaurant' | 'online' | 'membership';
   payments?: Array<{ type: 'Cash' | 'Card' | 'Gateway'; amount: number }>;
   membership?: {
@@ -51,6 +52,9 @@ export interface IOrder extends Document {
   aggregatorId?: string;
   paymentMethodId?: string;
   status: 'paid' | 'unpaid';
+  canceled?: boolean;
+  cancelReason?: string;
+  canceledAt?: Date | string;
   isDeleted?: boolean;
   createdAt?: Date | string;
   updatedAt?: Date | string;

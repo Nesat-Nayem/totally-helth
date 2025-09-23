@@ -77,22 +77,96 @@ const OrderSchema = new mongoose_1.Schema({
     startDate: { type: String, trim: true },
     endDate: { type: String, trim: true },
     paymentMode: { type: String, trim: true },
+    orderType: { type: String, enum: ['DineIn', 'TakeAway', 'Delivery'] },
+    salesType: { type: String, enum: ['restaurant', 'online', 'membership'] },
+    payments: {
+        type: [
+            new mongoose_1.Schema({
+                type: { type: String, enum: ['Cash', 'Card', 'Gateway'], trim: true },
+                amount: { type: Number, min: 0 },
+            }, { _id: false }),
+        ],
+        default: [],
+    },
+    membership: {
+        hold: { type: Boolean, default: false },
+        holdRanges: {
+            type: [
+                new mongoose_1.Schema({
+                    from: { type: String, trim: true }, // YYYY-MM-DD
+                    to: { type: String, trim: true },
+                }, { _id: false }),
+            ],
+            default: [],
+        },
+    },
     branchId: { type: String, trim: true },
     brand: { type: String, trim: true },
     aggregatorId: { type: String, trim: true },
     paymentMethodId: { type: String, trim: true },
     status: { type: String, enum: ['paid', 'unpaid'], default: 'paid' },
+    canceled: { type: Boolean, default: false },
+    cancelReason: { type: String, trim: true },
+    canceledAt: { type: Date },
     isDeleted: { type: Boolean, default: false },
 }, {
     timestamps: true,
     toJSON: {
         transform: function (doc, ret) {
+            var _a, _b;
             const r = ret;
             if (r.createdAt) {
                 r.createdAt = new Date(r.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
             }
             if (r.updatedAt) {
                 r.updatedAt = new Date(r.updatedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+            }
+            // add computed membership stats
+            try {
+                if (r.salesType === 'membership' && r.startDate && r.endDate) {
+                    const toDateOnly = (d) => {
+                        const dt = new Date(d);
+                        const y = dt.getFullYear();
+                        const m = dt.getMonth();
+                        const day = dt.getDate();
+                        return new Date(y, m, day);
+                    };
+                    const dayDiffInclusive = (a, b) => {
+                        const msPerDay = 24 * 60 * 60 * 1000;
+                        return Math.max(0, Math.floor((toDateOnly(b).getTime() - toDateOnly(a).getTime()) / msPerDay) + 1);
+                    };
+                    const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+                    const start = toDateOnly(r.startDate);
+                    const end = toDateOnly(r.endDate);
+                    const today = toDateOnly(new Date());
+                    const upto = today < end ? today : end;
+                    const totalMeals = dayDiffInclusive(start, end);
+                    const activeDaysSoFar = dayDiffInclusive(start, upto);
+                    // compute hold days within the [start, upto] interval
+                    let holdDays = 0;
+                    const ranges = (((_a = r.membership) === null || _a === void 0 ? void 0 : _a.holdRanges) || []);
+                    for (const rng of ranges) {
+                        const from = toDateOnly(rng.from);
+                        const to = rng.to ? toDateOnly(rng.to) : toDateOnly(new Date());
+                        // overlap with [start, upto]
+                        const overlapStart = from > start ? from : start;
+                        const overlapEnd = to < upto ? to : upto;
+                        if (overlapEnd >= overlapStart) {
+                            holdDays += dayDiffInclusive(overlapStart, overlapEnd);
+                        }
+                    }
+                    let consumed = clamp(activeDaysSoFar - holdDays, 0, totalMeals);
+                    // if currently on hold, do not count today as consumed if hold started today
+                    r.membershipStats = {
+                        totalMeals,
+                        consumedMeals: consumed,
+                        pendingMeals: clamp(totalMeals - consumed, 0, totalMeals),
+                        isOnHold: !!((_b = r.membership) === null || _b === void 0 ? void 0 : _b.hold),
+                    };
+                }
+            }
+            catch (e) {
+                // ignore compute errors
             }
         },
     },

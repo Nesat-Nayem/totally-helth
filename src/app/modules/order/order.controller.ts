@@ -59,6 +59,25 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+export const cancelOrder = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = req.params.id;
+    const reason = (req.body?.reason as string) || '';
+    const item = await Order.findOneAndUpdate(
+      { _id: id, isDeleted: false },
+      { canceled: true, cancelReason: reason, canceledAt: new Date() },
+      { new: true }
+    );
+    if (!item) {
+      res.status(404).json({ message: 'Order not found' });
+      return;
+    }
+    res.json({ message: 'Order canceled', data: item });
+  } catch (err: any) {
+    res.status(500).json({ message: err?.message || 'Failed to cancel order' });
+  }
+};
+
 function todayYmd() {
   const d = new Date();
   const y = d.getFullYear();
@@ -135,7 +154,7 @@ export const unholdMembership = async (req: Request, res: Response): Promise<voi
 
 export const getOrders = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { q = '', page = '1', limit = '20', status, startDate, endDate, salesType, customerId } = req.query as any;
+    const { q = '', page = '1', limit = '20', status, startDate, endDate, salesType, customerId, aggregatorId, branchId, orderType, canceled } = req.query as any;
     const filter: any = { isDeleted: false };
     if (status) filter.status = status;
     if (salesType) {
@@ -149,6 +168,19 @@ export const getOrders = async (req: Request, res: Response): Promise<void> => {
     }
     if (customerId) {
       filter['customer.id'] = String(customerId);
+    }
+    if (aggregatorId) {
+      filter.aggregatorId = String(aggregatorId);
+    }
+    if (branchId) {
+      filter.branchId = String(branchId);
+    }
+    if (orderType) {
+      const types = String(orderType).split(',').map((s) => s.trim()).filter(Boolean);
+      if (types.length > 0) filter.orderType = { $in: types };
+    }
+    if (typeof canceled !== 'undefined') {
+      filter.canceled = String(canceled) === 'true' || String(canceled) === '1';
     }
     if (startDate || endDate) {
       filter.date = {};

@@ -24,6 +24,7 @@ export const orderCreateValidation = z.object({
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   paymentMode: z.string().optional(),
+  orderType: z.enum(['DineIn', 'TakeAway', 'Delivery']).optional(),
   branchId: z.string().optional(),
   brand: z.string().optional(),
   aggregatorId: z.string().optional(),
@@ -72,6 +73,8 @@ export const orderCreateValidation = z.object({
   changeAmount: z.number().min(0).optional(),
   dueAmount: z.number().min(0).optional(),
   note: z.string().optional(),
+  canceled: z.boolean().optional(),
+  cancelReason: z.string().optional(),
 });
 
 export const orderUpdateValidation = orderCreateValidation.partial();

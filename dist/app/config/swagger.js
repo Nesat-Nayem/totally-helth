@@ -6,6 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.setupSwagger = void 0;
 const swagger_jsdoc_1 = __importDefault(require("swagger-jsdoc"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+const port = process.env.PORT ? Number(process.env.PORT) : 8080;
 const options = {
     definition: {
         openapi: '3.0.0',
@@ -23,7 +26,7 @@ const options = {
         },
         servers: [
             {
-                url: 'http://localhost:8080',
+                url: `http://localhost:${port}`,
                 description: 'Development server',
             },
             {

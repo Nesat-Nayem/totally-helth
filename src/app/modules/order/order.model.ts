@@ -51,6 +51,7 @@ const OrderSchema: Schema = new Schema(
     startDate: { type: String, trim: true },
     endDate: { type: String, trim: true },
     paymentMode: { type: String, trim: true },
+    orderType: { type: String, enum: ['DineIn', 'TakeAway', 'Delivery'] },
     salesType: { type: String, enum: ['restaurant', 'online', 'membership'] },
     payments: {
       type: [
@@ -84,6 +85,9 @@ const OrderSchema: Schema = new Schema(
     aggregatorId: { type: String, trim: true },
     paymentMethodId: { type: String, trim: true },
     status: { type: String, enum: ['paid', 'unpaid'], default: 'paid' },
+    canceled: { type: Boolean, default: false },
+    cancelReason: { type: String, trim: true },
+    canceledAt: { type: Date },
     isDeleted: { type: Boolean, default: false },
   },
   {

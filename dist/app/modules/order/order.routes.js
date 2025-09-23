@@ -12,6 +12,11 @@ const router = express_1.default.Router();
 router.post('/', (0, authMiddleware_1.auth)('admin'), order_controller_1.createOrder);
 // List orders (admin)
 router.get('/', (0, authMiddleware_1.auth)('admin'), order_controller_1.getOrders);
+// Membership hold/unhold (admin)
+router.post('/:id/membership/hold', (0, authMiddleware_1.auth)('admin'), order_controller_1.holdMembership);
+router.post('/:id/membership/unhold', (0, authMiddleware_1.auth)('admin'), order_controller_1.unholdMembership);
+// Cancel order (admin)
+router.post('/:id/cancel', (0, authMiddleware_1.auth)('admin'), order_controller_1.cancelOrder);
 // Get by id (admin)
 router.get('/:id', (0, authMiddleware_1.auth)('admin'), order_controller_1.getOrderById);
 // Update (admin)

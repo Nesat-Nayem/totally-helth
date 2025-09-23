@@ -14,5 +14,15 @@ exports.menuCreateValidation = zod_1.z.object({
     brands: zod_1.z.array(zod_1.z.string()).optional(),
     branches: zod_1.z.array(zod_1.z.string()).optional(),
     status: zod_1.z.enum(['active', 'inactive']).optional(),
+    // Nutrition fields
+    calories: zod_1.z.number().min(0).optional(),
+    protein: zod_1.z.number().min(0).optional(),
+    carbs: zod_1.z.number().min(0).optional(),
+    fibre: zod_1.z.number().min(0).optional(),
+    sugars: zod_1.z.number().min(0).optional(),
+    sodium: zod_1.z.number().min(0).optional(),
+    iron: zod_1.z.number().min(0).optional(),
+    calcium: zod_1.z.number().min(0).optional(),
+    vitaminC: zod_1.z.number().min(0).optional(),
 });
 exports.menuUpdateValidation = exports.menuCreateValidation.partial();

@@ -25,6 +25,7 @@ exports.orderCreateValidation = zod_1.z.object({
     startDate: zod_1.z.string().optional(),
     endDate: zod_1.z.string().optional(),
     paymentMode: zod_1.z.string().optional(),
+    orderType: zod_1.z.enum(['DineIn', 'TakeAway', 'Delivery']).optional(),
     branchId: zod_1.z.string().optional(),
     brand: zod_1.z.string().optional(),
     aggregatorId: zod_1.z.string().optional(),
@@ -37,6 +38,24 @@ exports.orderCreateValidation = zod_1.z.object({
     }))
         .optional(),
     status: zod_1.z.enum(['paid', 'unpaid']).default('paid').optional(),
+    salesType: zod_1.z.enum(['restaurant', 'online', 'membership']).optional(),
+    payments: zod_1.z
+        .array(zod_1.z.object({
+        type: zod_1.z.enum(['Cash', 'Card', 'Gateway']),
+        amount: zod_1.z.number().min(0),
+    }))
+        .optional(),
+    membership: zod_1.z
+        .object({
+        hold: zod_1.z.boolean().optional(),
+        holdRanges: zod_1.z
+            .array(zod_1.z.object({
+            from: zod_1.z.string(),
+            to: zod_1.z.string().optional(),
+        }))
+            .optional(),
+    })
+        .optional(),
     // extended fields
     vatPercent: zod_1.z.number().min(0).max(100).optional(),
     vatAmount: zod_1.z.number().min(0).optional(),
@@ -49,5 +68,7 @@ exports.orderCreateValidation = zod_1.z.object({
     changeAmount: zod_1.z.number().min(0).optional(),
     dueAmount: zod_1.z.number().min(0).optional(),
     note: zod_1.z.string().optional(),
+    canceled: zod_1.z.boolean().optional(),
+    cancelReason: zod_1.z.string().optional(),
 });
 exports.orderUpdateValidation = exports.orderCreateValidation.partial();
