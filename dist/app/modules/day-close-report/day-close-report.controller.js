@@ -51,7 +51,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateThermalReceipt = exports.deleteSingleDayCloseReport = exports.getSingleDayCloseReport = exports.downloadDayCloseReports = exports.getDayCloseReportsByDate = exports.getDayCloseReports = void 0;
+exports.generateThermalReceipt = exports.deleteDayCloseReportsByDate = exports.getSingleDayCloseReport = exports.downloadDayCloseReports = exports.getDayCloseReportsByDate = exports.getDayCloseReports = void 0;
 const shift_model_1 = require("../shift/shift.model");
 const order_model_1 = require("../order/order.model");
 const day_close_report_validation_1 = require("./day-close-report.validation");
@@ -347,6 +347,10 @@ const getDayCloseReports = (req, res) => __awaiter(void 0, void 0, void 0, funct
                     }
                 });
             }
+            // Update total cash from denomination data if available
+            if (salesData && salesData.denomination && salesData.denomination.totalCash) {
+                dayStats[date].totalCash = salesData.denomination.totalCash;
+            }
             // Check if any shift has "day-close" status to determine if we should show shift-wise listings
             const hasDayCloseStatus = groupedShifts[date].some(shift => shift.status === 'day-close');
             const hasClosedStatus = groupedShifts[date].some(shift => shift.status === 'closed');
@@ -537,7 +541,7 @@ const getDayCloseReportsByDate = (req, res) => __awaiter(void 0, void 0, void 0,
             success: true,
             statusCode: 200,
             message: 'Day close reports retrieved successfully for date',
-            data: filteredReports.map(serializeDayClose),
+            data: filteredReports,
             total: filteredReports.length,
             date: date,
             recordTypes: {
@@ -879,51 +883,80 @@ const getSingleDayCloseReport = (req, res) => __awaiter(void 0, void 0, void 0, 
 });
 exports.getSingleDayCloseReport = getSingleDayCloseReport;
 /**
- * Deletes a single day close report by ID
+ * Deletes all day close reports for a specific date
+ * Simple API that handles everything for one day
  * @param req - Express request object
  * @param res - Express response object
  */
-const deleteSingleDayCloseReport = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteDayCloseReportsByDate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id } = day_close_report_validation_1.idValidation.parse(req.params);
+        const { date } = day_close_report_validation_1.dateValidation.parse(req.params);
         const reqUser = req;
         const branchId = reqUser.branchId;
-        // Build filter for specific day-close report (supports both statuses)
-        const filter = {
-            _id: id,
-            status: 'day-close'
-        };
-        if (branchId)
-            filter.branchId = branchId;
-        // Find the report first to ensure it exists
-        const report = yield shift_model_1.Shift.findOne(filter);
-        if (!report) {
-            res.status(404).json({
+        // Build filters for all related records - MUST include branchId for security
+        if (!branchId) {
+            res.status(403).json({
                 success: false,
-                statusCode: 404,
-                message: 'Day close report not found'
+                statusCode: 403,
+                message: 'Branch ID is required for delete operation'
             });
             return;
         }
-        // Delete the specific report
-        const deleteResult = yield shift_model_1.Shift.deleteOne(filter);
+        const shiftFilter = {
+            startDate: date,
+            status: 'day-close',
+            branchId: branchId // Always include branchId for security
+        };
+        const dayCloseFilter = {
+            startDate: date,
+            status: 'day-close',
+            branchId: branchId // Always include branchId for security
+        };
+        const daySalesFilter = {
+            date: date,
+            branchId: branchId // Always include branchId for security
+        };
+        // Check if any records exist before deletion
+        const [existingShifts, existingDayClose, existingDaySales] = yield Promise.all([
+            shift_model_1.Shift.find(shiftFilter).lean(),
+            day_close_model_1.DayClose.find(dayCloseFilter).lean(),
+            day_sales_model_1.DaySales.find(daySalesFilter).lean()
+        ]);
+        if (existingShifts.length === 0 && existingDayClose.length === 0 && existingDaySales.length === 0) {
+            res.status(404).json({
+                success: false,
+                statusCode: 404,
+                message: 'No day close reports found for the specified date'
+            });
+            return;
+        }
+        // Delete all related records for this date and branch
+        const [shiftResult, dayCloseResult, daySalesResult] = yield Promise.all([
+            shift_model_1.Shift.deleteMany(shiftFilter),
+            day_close_model_1.DayClose.deleteMany(dayCloseFilter),
+            day_sales_model_1.DaySales.deleteMany(daySalesFilter)
+        ]);
+        const totalDeleted = shiftResult.deletedCount + dayCloseResult.deletedCount + daySalesResult.deletedCount;
         res.status(200).json({
             success: true,
             statusCode: 200,
-            message: 'Day close report deleted successfully',
-            deletedCount: deleteResult.deletedCount,
-            reportId: id
+            message: `Day close reports deleted successfully for ${date}`,
+            data: {
+                date: date,
+                branchId: branchId,
+                totalDeleted: totalDeleted
+            }
         });
     }
     catch (error) {
         res.status(400).json({
             success: false,
             statusCode: 400,
-            message: (error === null || error === void 0 ? void 0 : error.message) || 'Failed to delete day close report'
+            message: (error === null || error === void 0 ? void 0 : error.message) || 'Failed to delete day close reports for the specified date'
         });
     }
 });
-exports.deleteSingleDayCloseReport = deleteSingleDayCloseReport;
+exports.deleteDayCloseReportsByDate = deleteDayCloseReportsByDate;
 /**
  * Generates thermal receipt HTML for day-close reports (Optimized)
  * Uses DaySales table for better performance

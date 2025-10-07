@@ -73,4 +73,16 @@ exports.dayCloseActionValidation = zod_1.z.object({
         denomination2: zod_1.z.number().int().min(0).default(0),
         denomination1: zod_1.z.number().int().min(0).default(0),
     }).optional(),
+    denominations: zod_1.z.object({
+        denomination1000: zod_1.z.number().int().min(0).default(0),
+        denomination500: zod_1.z.number().int().min(0).default(0),
+        denomination200: zod_1.z.number().int().min(0).default(0),
+        denomination100: zod_1.z.number().int().min(0).default(0),
+        denomination50: zod_1.z.number().int().min(0).default(0),
+        denomination20: zod_1.z.number().int().min(0).default(0),
+        denomination10: zod_1.z.number().int().min(0).default(0),
+        denomination5: zod_1.z.number().int().min(0).default(0),
+        denomination2: zod_1.z.number().int().min(0).default(0),
+        denomination1: zod_1.z.number().int().min(0).default(0),
+    }).optional(),
 });

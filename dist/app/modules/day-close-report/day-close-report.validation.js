@@ -9,7 +9,7 @@
  * @version 1.0.0
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.idValidation = exports.downloadReportValidation = exports.dayCloseReportQueryValidation = void 0;
+exports.dateValidation = exports.idValidation = exports.downloadReportValidation = exports.dayCloseReportQueryValidation = void 0;
 const zod_1 = require("zod");
 /**
  * Validation schema for day close report query parameters
@@ -46,4 +46,11 @@ exports.downloadReportValidation = zod_1.z.object({
  */
 exports.idValidation = zod_1.z.object({
     id: zod_1.z.string().min(1, 'ID is required').regex(/^[0-9a-fA-F]{24}$/, 'Invalid ID format'),
+});
+/**
+ * Validation schema for date parameter
+ * Validates date format (YYYY-MM-DD)
+ */
+exports.dateValidation = zod_1.z.object({
+    date: zod_1.z.string().min(1, 'Date is required').regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Use YYYY-MM-DD format'),
 });

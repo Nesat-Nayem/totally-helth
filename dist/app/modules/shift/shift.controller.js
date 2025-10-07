@@ -588,7 +588,7 @@ const dayClose = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     totalShifts: 0,
                     dayCloseTime: now,
                     closedBy: userId,
-                    denomination: createDenominationData(payload.denomination)
+                    denomination: createDenominationData(payload.denomination || payload.denominations)
                 });
                 yield daySalesRecord.save();
             }
@@ -701,7 +701,7 @@ const dayClose = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 totalShifts: shiftWiseTotals.totalShifts,
                 dayCloseTime: now,
                 closedBy: userId,
-                denomination: createDenominationData(payload.denomination)
+                denomination: createDenominationData(payload.denomination || payload.denominations)
             });
             yield daySalesRecord.save();
         }

@@ -45,11 +45,11 @@ router.get('/date/:date', (0, authMiddleware_1.auth)('admin'), day_close_report_
  */
 router.get('/:id', (0, authMiddleware_1.auth)('admin'), day_close_report_controller_1.getSingleDayCloseReport);
 /**
- * @route DELETE /api/day-close-report/:id
- * @desc Delete a single day close report by ID
+ * @route DELETE /api/day-close-report/date/:date
+ * @desc Delete all day close reports for a specific date
  * @access Admin
  */
-router.delete('/:id', (0, authMiddleware_1.auth)('admin'), day_close_report_controller_1.deleteSingleDayCloseReport);
+router.delete('/date/:date', (0, authMiddleware_1.auth)('admin'), day_close_report_controller_1.deleteDayCloseReportsByDate);
 /**
  * @route GET /api/day-close-report/thermal/:date
  * @desc Generate thermal receipt HTML for a specific date (Optimized)
