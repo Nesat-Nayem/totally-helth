@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thermal Receipt</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.2;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+            color: black;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 20px;
+        }
+        
+        .thermal-receipt {
+            width: 300px;
+            background: #fff;
+            color: #000;
+            padding: 15px;
+            position: relative;
+            /* Very light border like real thermal receipt */
+            border: 1px solid #ddd;
+        }
+        
+        /* Clean thermal receipt design */
+        
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .business-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .location {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .date-time {
+            font-size: 11px;
+            margin-bottom: 10px;
+        }
+        
+        .report-title {
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 15px;
+        }
+        
+        .section {
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        
+        .title-underline {
+            border-bottom: 1px solid #000;
+            margin-bottom: 8px;
+        }
+        
+        .line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+        
+        .label {
+            flex: 1;
+            font-weight: bold;
+        }
+        
+        .value {
+            flex: 1;
+            text-align: right;
+            font-weight: normal;
+        }
+        
+        .separator {
+            border-top: 1px solid #000;
+            margin: 8px 0;
+        }
+        
+        .denomination-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+        
+        .denomination-value {
+            flex: 1;
+        }
+        
+        .denomination-quantity {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .denomination-amount {
+            flex: 1;
+            text-align: right;
+        }
+        
+        .total-line {
+            border-top: 1px solid black;
+            padding-top: 5px;
+            margin-top: 5px;
+        }
+        
+        .total-line .label {
+            font-weight: bold;
+        }
+        
+        .total-line .value {
+            font-weight: normal;
+        }
+        
+        .grand-total {
+            font-size: 12px;
+            padding: 5px 0;
+        }
+        
+        .grand-total .label {
+            font-weight: bold;
+        }
+        
+        .grand-total .value {
+            font-weight: normal;
+        }
+        
+        /* Print-friendly styling */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .thermal-receipt {
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="thermal-receipt">
+    <!-- Header Section -->
+    <div class="header">
+        <div class="business-name"><%= header.businessName %></div>
+        <div class="location"><%= header.location %></div>
+        <div class="date-time">Date : <%= header.date %> | Time : <%= header.time %></div>
+             <!-- Header separator line -->
+    <div class="separator"></div>
+        <div class="report-title"><%= header.reportType %></div>
+     
+    </div>
+
+  
+
+    <!-- Shift Details -->
+    <div class="section">
+        <div class="line">
+            <span class="label">Cashier:</span>
+            <span class="value"><%= shiftDetails.cashier %></span>
+        </div>
+        <div class="line">
+            <span class="label">Log In Date:</span>
+            <span class="value"><%= shiftDetails.logInDate %></span>
+        </div>
+        <div class="line">
+            <span class="label">Log In Time:</span>
+            <span class="value"><%= shiftDetails.logInTime %></span>
+        </div>
+        <div class="line">
+            <span class="label">Log Out Date:</span>
+            <span class="value"><%= shiftDetails.logOutDate %></span>
+        </div>
+        <div class="line">
+            <span class="label">Log Out Time:</span>
+            <span class="value"><%= shiftDetails.logOutTime %></span>
+        </div>
+        <div class="separator"></div>
+        <div class="line">
+            <span class="label">Total Pax:</span>
+            <span class="value"><%= shiftDetails.totalPax %></span>
+        </div>
+    </div>
+
+    <!-- Summary Section -->
+    <div class="section">
+        <div class="line">
+            <span class="label">Total Invoice Amount:</span>
+            <span class="value"><%= summary.totalInvoiceAmount %></span>
+        </div>
+        <div class="line">
+            <span class="label">Total Discount Amount:</span>
+            <span class="value"><%= summary.totalDiscountAmount %></span>
+        </div>
+        <div class="line">
+            <span class="label">Total EAT SMART AMT:</span>
+            <span class="value"><%= summary.totalEatSmartAmount %></span>
+        </div>
+        <div class="line">
+            <span class="label">Net Sales Amount:</span>
+            <span class="value"><%= summary.netSalesAmount %></span>
+        </div>
+        <div class="line">
+            <span class="label">5% VAT Amount:</span>
+            <span class="value"><%= summary.vatAmount %></span>
+        </div>
+        <div class="separator"></div>
+        <div class="line grand-total">
+            <span class="label">Grand Total:</span>
+            <span class="value"><%= summary.grandTotal %></span>
+        </div>
+        <!-- <div class="separator"></div> -->
+    </div>
+
+    <!-- Sales Details -->
+    <div class="separator"></div>
+    <div class="section">
+        <div class="section-title">Sales Details</div>
+        <div class="separator"></div>
+        <div class="line">
+            <span class="label">Restaurant Sales:</span>
+            <span class="value"><%= salesDetails.restaurantSales %></span>
+        </div>
+        <div class="line">
+            <span class="label">Membership Meal:</span>
+            <span class="value"><%= salesDetails.membershipMeal %></span>
+        </div>
+        <div class="line">
+            <span class="label">Membership Register:</span>
+            <span class="value"><%= salesDetails.membershipRegister %></span>
+        </div>
+    </div>
+
+    <!-- Collection Details -->
+    <div class="separator"></div>
+    <div class="section">
+        <div class="section-title">Collection Details</div>
+        <div class="separator"></div>
+        <div class="line">
+            <span class="label">Cash Sales Amt:</span>
+            <span class="value"><%= collectionDetails.cashSalesAmount %></span>
+        </div>
+        <div class="line">
+            <span class="label">Credit Card Amt:</span>
+            <span class="value"><%= collectionDetails.creditCardAmount %></span>
+        </div>
+        <div class="line">
+            <span class="label">Online Sales Amt:</span>
+            <span class="value"><%= collectionDetails.onlineSalesAmount %></span>
+        </div>
+        <div class="line">
+            <span class="label">Tawseel Amt:</span>
+            <span class="value"><%= collectionDetails.tawseelAmount %></span>
+        </div>
+        <div class="line total-line">
+            <span class="label">Total Collection:</span>
+            <span class="value"><%= collectionDetails.totalCollection %></span>
+        </div>
+    </div>
+
+    <!-- Cash Details -->
+    <div class="separator"></div>
+    <div class="section">
+        <div class="section-title">Cash Details</div>
+        <div class="separator"></div>
+        <div class="line">
+            <span class="label">Total Pay In Amt:</span>
+            <span class="value"><%= cashDetails.totalPayInAmount %></span>
+        </div>
+        <div class="line">
+            <span class="label">Total Pay Out Amt:</span>
+            <span class="value"><%= cashDetails.totalPayOutAmount %></span>
+        </div>
+    </div>
+
+    <!-- Denomination -->
+    <div class="separator"></div>
+    <div class="section">
+        <div class="section-title">Denomination</div>
+        <div class="separator"></div>
+        <% denomination.denominations.forEach(function(denom) { %>
+        <div class="denomination-line">
+            <span class="denomination-value"><%= denom.value %></span>
+            <span class="denomination-quantity">X <%= denom.quantity %></span>
+            <span class="denomination-amount">= <%= denom.amount %></span>
+        </div>
+        <% }); %>
+        <div class="line total-line">
+            <span class="label">Total Amount:</span>
+            <span class="value"><%= denomination.totalAmount %></span>
+        </div>
+    </div>
+
+    <!-- Difference -->
+    <div class="separator"></div>
+    <div class="section">
+        <div class="section-title">Difference</div>
+        <div class="separator"></div>
+        <div class="line">
+            <span class="label">Total Difference in Cash:</span>
+            <span class="value">(<%= difference.totalDifferenceInCash %>)</span>
+        </div>
+    </div>
+    </div>
+</body>
+</html>

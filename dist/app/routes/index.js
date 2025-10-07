@@ -21,6 +21,8 @@ const brand_routes_1 = require("../modules/brand/brand.routes");
 const aggregator_routes_1 = require("../modules/aggregator/aggregator.routes");
 const paymentMethod_routes_1 = require("../modules/payment-method/paymentMethod.routes");
 const moreOption_routes_1 = require("../modules/more-option/moreOption.routes");
+const day_close_report_routes_1 = require("../modules/day-close-report/day-close-report.routes");
+const shift_routes_1 = require("../modules/shift/shift.routes");
 const menuCategory_routes_1 = require("../modules/menu-category/menuCategory.routes");
 const menu_routes_1 = require("../modules/menu/menu.routes");
 const router = (0, express_1.Router)();
@@ -112,6 +114,14 @@ const moduleRoutes = [
     {
         path: "/orders",
         route: order_routes_1.orderRouter,
+    },
+    {
+        path: "/day-close-report",
+        route: day_close_report_routes_1.dayCloseReportRouter,
+    },
+    {
+        path: "/shift",
+        route: shift_routes_1.shiftRouter,
     },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

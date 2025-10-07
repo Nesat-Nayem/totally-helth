@@ -19,6 +19,8 @@ import { brandRouter } from "../modules/brand/brand.routes";
 import { aggregatorRouter } from "../modules/aggregator/aggregator.routes";
 import { paymentMethodRouter } from "../modules/payment-method/paymentMethod.routes";
 import { moreOptionRouter } from "../modules/more-option/moreOption.routes";
+import { dayCloseReportRouter } from "../modules/day-close-report/day-close-report.routes";
+import { shiftRouter } from "../modules/shift/shift.routes";
 import { menuCategoryRouter } from "../modules/menu-category/menuCategory.routes";
 import { menuRouter } from "../modules/menu/menu.routes";
 
@@ -123,6 +125,15 @@ const moduleRoutes = [
   {
     path: "/orders",
     route: orderRouter,
+  },
+
+  {
+    path: "/day-close-report",
+    route: dayCloseReportRouter,
+  },
+  {
+    path: "/shift",
+    route: shiftRouter,
   },
 ];
 

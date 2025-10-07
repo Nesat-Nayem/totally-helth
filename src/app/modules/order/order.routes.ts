@@ -1,11 +1,13 @@
 import express from 'express';
 import { auth } from '../../middlewares/authMiddleware';
+import { dayCloseMiddleware } from '../../middlewares/dayCloseMiddleware';
 import { createOrder, deleteOrderById, getOrderById, getOrders, updateOrderById, holdMembership, unholdMembership, cancelOrder } from './order.controller';
 
 const router = express.Router();
 
-// Create order (admin)
-router.post('/', auth('admin'), createOrder);
+// Create order (admin) - check day close before allowing order creation
+router.post('/', auth('admin'), dayCloseMiddleware, createOrder);
+
 
 // List orders (admin)
 router.get('/', auth('admin'), getOrders);

@@ -77,7 +77,7 @@ const OrderSchema = new mongoose_1.Schema({
     startDate: { type: String, trim: true },
     endDate: { type: String, trim: true },
     paymentMode: { type: String, trim: true },
-    orderType: { type: String, enum: ['DineIn', 'TakeAway', 'Delivery'] },
+    orderType: { type: String, enum: ['DineIn', 'TakeAway', 'Delivery', 'restaurant', 'online', 'membership'] },
     salesType: { type: String, enum: ['restaurant', 'online', 'membership'] },
     payments: {
         type: [
@@ -108,6 +108,10 @@ const OrderSchema = new mongoose_1.Schema({
     canceled: { type: Boolean, default: false },
     cancelReason: { type: String, trim: true },
     canceledAt: { type: Date },
+    dayCloseId: { type: String, trim: true },
+    dayCloseDate: { type: String, trim: true },
+    dayCloseStart: { type: Date },
+    dayCloseEnd: { type: Date },
     isDeleted: { type: Boolean, default: false },
 }, {
     timestamps: true,

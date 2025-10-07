@@ -37,7 +37,6 @@ exports.MoreOption = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const moreOptionSchema = new mongoose_1.Schema({
     name: { type: String, required: true, trim: true },
-    price: { type: Number, required: true, min: 0 },
     category: { type: String, enum: ['more', 'less', 'without', 'general'], default: 'general' },
     status: { type: String, enum: ['active', 'inactive'], default: 'active' },
 }, { timestamps: true });

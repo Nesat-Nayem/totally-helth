@@ -55,6 +55,10 @@ export interface IOrder extends Document {
   canceled?: boolean;
   cancelReason?: string;
   canceledAt?: Date | string;
+  dayCloseId?: string;
+  dayCloseDate?: string;
+  dayCloseStart?: Date | string;
+  dayCloseEnd?: Date | string;
   isDeleted?: boolean;
   createdAt?: Date | string;
   updatedAt?: Date | string;

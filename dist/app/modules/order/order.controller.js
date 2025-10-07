@@ -45,10 +45,42 @@ const createOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         // branch from token (if available)
         const reqWithUser = req;
         const branchId = payload.branchId || reqWithUser.branchId;
-        const created = yield order_model_1.Order.create(Object.assign(Object.assign({}, payload), { invoiceNo,
+        const orderData = Object.assign(Object.assign({}, payload), { invoiceNo,
             orderNo,
             branchId,
-            date }));
+            date });
+        const created = yield order_model_1.Order.create(orderData);
+        // If middleware provided custom timestamps (for day close scenarios), update them
+        // Access timestamps directly from req.body since validation strips them out
+        const customCreatedAt = req.body.createdAt;
+        const customUpdatedAt = req.body.updatedAt;
+        console.log('🔍 Checking for custom timestamps:');
+        console.log('   - customCreatedAt:', customCreatedAt);
+        console.log('   - customUpdatedAt:', customUpdatedAt);
+        console.log('   - Full req.body keys:', Object.keys(req.body));
+        if (customCreatedAt || customUpdatedAt) {
+            console.log('📅 Custom timestamps found, updating order...');
+            const updateData = {};
+            if (customCreatedAt)
+                updateData.createdAt = new Date(customCreatedAt);
+            if (customUpdatedAt)
+                updateData.updatedAt = new Date(customUpdatedAt);
+            console.log('📅 Update data:', updateData);
+            // Use findByIdAndUpdate to override timestamps
+            const updated = yield order_model_1.Order.findByIdAndUpdate(created._id, updateData, {
+                new: true,
+                runValidators: false,
+                timestamps: false // Disable automatic timestamp updates
+            });
+            console.log('📅 Order updated with custom timestamps');
+            // Fetch the updated document
+            const updatedOrder = yield order_model_1.Order.findById(created._id);
+            res.status(201).json({ message: 'Order created', data: updatedOrder });
+            return;
+        }
+        else {
+            console.log('📅 No custom timestamps found, using default timestamps');
+        }
         res.status(201).json({ message: 'Order created', data: created });
     }
     catch (err) {

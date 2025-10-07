@@ -42,13 +42,50 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
     const reqWithUser = req as userInterface;
     const branchId = payload.branchId || reqWithUser.branchId;
 
-    const created = await Order.create({
+    const orderData: any = {
       ...payload,
       invoiceNo,
       orderNo,
       branchId,
       date,
-    });
+    };
+
+    const created = await Order.create(orderData);
+
+    // If middleware provided custom timestamps (for day close scenarios), update them
+    // Access timestamps directly from req.body since validation strips them out
+    const customCreatedAt = (req.body as any).createdAt;
+    const customUpdatedAt = (req.body as any).updatedAt;
+    
+    console.log('🔍 Checking for custom timestamps:');
+    console.log('   - customCreatedAt:', customCreatedAt);
+    console.log('   - customUpdatedAt:', customUpdatedAt);
+    console.log('   - Full req.body keys:', Object.keys(req.body));
+    
+    if (customCreatedAt || customUpdatedAt) {
+      console.log('📅 Custom timestamps found, updating order...');
+      const updateData: any = {};
+      if (customCreatedAt) updateData.createdAt = new Date(customCreatedAt);
+      if (customUpdatedAt) updateData.updatedAt = new Date(customUpdatedAt);
+      
+      console.log('📅 Update data:', updateData);
+      
+      // Use findByIdAndUpdate to override timestamps
+      const updated = await Order.findByIdAndUpdate(created._id, updateData, { 
+        new: true,
+        runValidators: false,
+        timestamps: false // Disable automatic timestamp updates
+      });
+      
+      console.log('📅 Order updated with custom timestamps');
+      
+      // Fetch the updated document
+      const updatedOrder = await Order.findById(created._id);
+      res.status(201).json({ message: 'Order created', data: updatedOrder });
+      return;
+    } else {
+      console.log('📅 No custom timestamps found, using default timestamps');
+    }
     res.status(201).json({ message: 'Order created', data: created });
   } catch (err: any) {
     if (err instanceof ZodError) {

@@ -6,10 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.orderRouter = void 0;
 const express_1 = __importDefault(require("express"));
 const authMiddleware_1 = require("../../middlewares/authMiddleware");
+const dayCloseMiddleware_1 = require("../../middlewares/dayCloseMiddleware");
 const order_controller_1 = require("./order.controller");
 const router = express_1.default.Router();
-// Create order (admin)
-router.post('/', (0, authMiddleware_1.auth)('admin'), order_controller_1.createOrder);
+// Create order (admin) - check day close before allowing order creation
+router.post('/', (0, authMiddleware_1.auth)('admin'), dayCloseMiddleware_1.dayCloseMiddleware, order_controller_1.createOrder);
 // List orders (admin)
 router.get('/', (0, authMiddleware_1.auth)('admin'), order_controller_1.getOrders);
 // Membership hold/unhold (admin)
