@@ -1140,6 +1140,108 @@ export const generateThermalReceipt = async (req: Request, res: Response): Promi
   }
 };
 
+/**
+ * Generates thermal receipt data in JSON format for frontend processing
+ * Uses same data as thermal receipt but returns JSON instead of HTML
+ * @param req - Express request object
+ * @param res - Express response object
+ */
+export const generateThermalReceiptJson = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { date } = req.params;
+    const reqUser = req as userInterface;
+    const branchId = reqUser.branchId;
+    const timezone = reqUser.timezone || DEFAULT_TIMEZONE;
+
+    if (!date) {
+      res.status(400).json({ 
+        success: false,
+        statusCode: 400,
+        message: 'Date parameter is required' 
+      });
+      return;
+    }
+
+    // Use DaySales data for thermal receipt generation (optimized)
+    let thermalData;
+    try {
+      // Try to get data from DaySales table first (optimized)
+      const daySalesData = await DaySales.findOne({
+        date: date,
+        ...(branchId ? { branchId } : {})
+      }).lean();
+
+      if (daySalesData) {
+        // Use stored DaySales data with denomination
+        thermalData = formatThermalReceiptFromDaySales(daySalesData, date, timezone);
+      } else {
+        // Fallback: Get orders and calculate (for days without DaySales record)
+        const startOfDay = new Date(date + 'T00:00:00.000Z');
+        const endOfDay = new Date(date + 'T23:59:59.999Z');
+        
+        const orderQuery: any = {
+          $or: [
+            {
+              createdAt: {
+                $gte: startOfDay,
+                $lte: endOfDay
+              }
+            },
+            {
+              updatedAt: {
+                $gte: startOfDay,
+                $lte: endOfDay
+              }
+            }
+          ],
+          status: 'paid',
+          canceled: { $ne: true },
+          isDeleted: { $ne: true }
+        };
+
+        if (branchId) {
+          orderQuery.branchId = branchId;
+        }
+
+        const orders = await Order.find(orderQuery).lean();
+
+        if (orders.length === 0) {
+          res.status(404).json({ 
+            success: false,
+            statusCode: 404,
+            message: 'No orders found for the specified date' 
+          });
+          return;
+        }
+
+        thermalData = formatThermalReceiptData(orders, date, timezone);
+      }
+    } catch (error) {
+      console.error('Error getting thermal data:', error);
+      res.status(500).json({
+        success: false,
+        statusCode: 500,
+        message: 'Failed to retrieve thermal receipt data'
+      });
+      return;
+    }
+
+    // Return JSON response instead of HTML
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: 'Thermal receipt data retrieved successfully',
+      data: thermalData
+    });
+  } catch (error: any) {
+    res.status(400).json({ 
+      success: false,
+      statusCode: 400,
+      message: error?.message || 'Failed to generate thermal receipt data' 
+    });
+  }
+};
+
 
 
 /**

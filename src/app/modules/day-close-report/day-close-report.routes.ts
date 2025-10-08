@@ -16,7 +16,8 @@ import {
   downloadDayCloseReports,
   getSingleDayCloseReport,
   deleteDayCloseReportsByDate,
-  generateThermalReceipt
+  generateThermalReceipt,
+  generateThermalReceiptJson
 } from './day-close-report.controller';
 
 const router = express.Router();
@@ -66,6 +67,13 @@ router.delete('/date/:date', auth('admin'), deleteDayCloseReportsByDate);
  * @access Admin
  */
 router.get('/thermal/:date',auth('admin'), generateThermalReceipt);
+
+/**
+ * @route GET /api/day-close-report/thermal-json/:date
+ * @desc Generate thermal receipt data in JSON format for frontend processing
+ * @access Admin
+ */
+router.get('/thermal-json/:date', auth('admin'), generateThermalReceiptJson);
 
 
 export const dayCloseReportRouter = router;
