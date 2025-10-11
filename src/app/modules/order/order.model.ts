@@ -26,6 +26,7 @@ const OrderSchema: Schema = new Schema(
       type: [
         new Schema(
           {
+            // comment field is optional
             name: { type: String, required: true, trim: true },
             price: { type: Number, required: true, min: 0 },
             qty: { type: Number, required: true, min: 1, default: 1 },
@@ -35,6 +36,7 @@ const OrderSchema: Schema = new Schema(
       ],
       default: [],
     },
+    
     subTotal: { type: Number, required: true, min: 0 },
     total: { type: Number, required: true, min: 0 },
     vatPercent: { type: Number, min: 0 },

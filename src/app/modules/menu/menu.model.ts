@@ -6,8 +6,14 @@ export interface IMenu extends Document {
   image?: string;
   images?: string[];
   restaurantPrice?: number;
+  restaurantVat?: number;
+  restaurantTotalPrice?: number;
   onlinePrice?: number;
+  onlineVat?: number;
+  onlineTotalPrice?: number;
   membershipPrice?: number;
+  membershipVat?: number;
+  membershipTotalPrice?: number;
   category?: string; // MenuCategory _id
   brands?: string[]; // Brand _ids
   branches?: string[]; // Branch _ids
@@ -32,8 +38,14 @@ const MenuSchema = new Schema<IMenu>(
     image: { type: String, trim: true },
     images: [{ type: String, trim: true }],
     restaurantPrice: { type: Number, min: 0 },
+    restaurantVat: { type: Number, min: 0 },
+    restaurantTotalPrice: { type: Number, min: 0 },
     onlinePrice: { type: Number, min: 0 },
+    onlineVat: { type: Number, min: 0 },
+    onlineTotalPrice: { type: Number, min: 0 },
     membershipPrice: { type: Number, min: 0 },
+    membershipVat: { type: Number, min: 0 },
+    membershipTotalPrice: { type: Number, min: 0 },
     category: { type: String, trim: true },
     brands: [{ type: String, trim: true }],
     branches: [{ type: String, trim: true }],
