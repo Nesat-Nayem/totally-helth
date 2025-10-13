@@ -22,6 +22,7 @@ import { calculateSales } from './sales.service';
 import { DayClose } from '../day-close-report/day-close.model';
 import { DaySales } from '../day-close-report/day-sales.model';
 import { User } from '../auth/auth.model';
+import { Order } from '../order/order.model';
 
 // Default timezone for date operations
 const DEFAULT_TIMEZONE = 'Asia/Dubai';
@@ -120,6 +121,41 @@ const isDayClosed = async (date: string, branchId?: string): Promise<boolean> =>
     ...(branchId ? { branchId } : {}) 
   });
   return !!dayClosedShift;
+};
+
+/**
+ * Checks for unpaid orders on a specific date
+ * @param date - Date to check (YYYY-MM-DD format)
+ * @param branchId - Branch ID to check
+ * @returns Promise<{hasUnpaidOrders: boolean, unpaidOrders: any[]}> - Object containing unpaid orders info
+ */
+const checkUnpaidOrders = async (date: string, branchId?: string): Promise<{hasUnpaidOrders: boolean, unpaidOrders: any[]}> => {
+  try {
+    // Create date range for the entire day
+    const startOfDay = new Date(date + 'T00:00:00.000Z');
+    const endOfDay = new Date(date + 'T23:59:59.999Z');
+    
+    const filter: any = {
+      date: { $gte: startOfDay, $lte: endOfDay },
+      status: 'unpaid',
+      canceled: { $ne: true }, // Exclude canceled orders
+      isDeleted: { $ne: true } // Exclude deleted orders
+    };
+    
+    if (branchId) filter.branchId = branchId;
+    
+    const unpaidOrders = await Order.find(filter)
+      .select('_id invoiceNo orderNo customer total payableAmount dueAmount date')
+      .lean();
+    
+    return {
+      hasUnpaidOrders: unpaidOrders.length > 0,
+      unpaidOrders: unpaidOrders
+    };
+  } catch (error) {
+    console.error('Error checking unpaid orders:', error);
+    return { hasUnpaidOrders: false, unpaidOrders: [] };
+  }
 };
 
 /**
@@ -607,6 +643,30 @@ export const dayClose = async (req: Request, res: Response): Promise<void> => {
           closedBy: shift.closedBy,
           note: shift.note
         }))
+      });
+      return;
+    }
+
+    // Check for unpaid orders before allowing day close
+    const unpaidOrdersCheck = await checkUnpaidOrders(currentDate, branchId);
+    
+    if (unpaidOrdersCheck.hasUnpaidOrders) {
+      res.status(400).json({
+        success: false,
+        statusCode: 400,
+        message: 'Cannot close the day. There are unpaid orders that need to be settled first.',
+        unpaidOrdersCount: unpaidOrdersCheck.unpaidOrders.length,
+        unpaidOrders: unpaidOrdersCheck.unpaidOrders.map(order => ({
+          id: order._id,
+          invoiceNo: order.invoiceNo,
+          orderNo: order.orderNo,
+          customerName: order.customer?.name || 'N/A',
+          total: order.total,
+          payableAmount: order.payableAmount,
+          dueAmount: order.dueAmount,
+          date: order.date
+        })),
+        actionRequired: 'Please mark all orders as paid before closing the day'
       });
       return;
     }
