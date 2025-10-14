@@ -1,7 +1,7 @@
 import express from 'express';
 import { auth } from '../../middlewares/authMiddleware';
 import { dayCloseMiddleware } from '../../middlewares/dayCloseMiddleware';
-import { createOrder, deleteOrderById, getOrderById, getOrders, updateOrderById, holdMembership, unholdMembership, cancelOrder } from './order.controller';
+import { createOrder, deleteOrderById, getOrderById, getOrders, updateOrderById, holdMembership, unholdMembership, cancelOrder, getPaidOrdersToday, getUnpaidOrdersToday } from './order.controller';
 
 const router = express.Router();
 
@@ -11,6 +11,12 @@ router.post('/', auth('admin'), dayCloseMiddleware, createOrder);
 
 // List orders (admin)
 router.get('/', auth('admin'), getOrders);
+
+// Get paid orders for today (admin)
+router.get('/today/paid', auth('admin'), getPaidOrdersToday);
+
+// Get unpaid orders for today (admin)
+router.get('/today/unpaid', auth('admin'), getUnpaidOrdersToday);
 
 // Membership hold/unhold (admin)
 router.post('/:id/membership/hold', auth('admin'), holdMembership);

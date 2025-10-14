@@ -303,3 +303,77 @@ export const deleteOrderById = async (req: Request, res: Response): Promise<void
     res.status(500).json({ message: err?.message || 'Failed to delete order' });
   }
 };
+
+export const getPaidOrdersToday = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { branchId } = req.query as any;
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+    const filter: any = { 
+      isDeleted: false,
+      status: 'paid',
+      date: { $gte: startOfDay, $lte: endOfDay }
+    };
+
+    if (branchId) {
+      filter.branchId = String(branchId);
+    }
+
+    const orders = await Order.find(filter).sort({ createdAt: -1 });
+
+    // Calculate totals
+    const totalsAgg = await Order.aggregate([
+      { $match: filter },
+      { $group: { _id: null, total: { $sum: '$total' }, count: { $sum: 1 } } }
+    ]);
+    const summary = totalsAgg[0] || { total: 0, count: 0 };
+
+    res.json({ 
+      message: 'Paid orders for today retrieved successfully',
+      data: orders, 
+      summary,
+      date: today.toISOString().split('T')[0]
+    });
+  } catch (err: any) {
+    res.status(500).json({ message: err?.message || 'Failed to fetch paid orders for today' });
+  }
+};
+
+export const getUnpaidOrdersToday = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { branchId } = req.query as any;
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+    const filter: any = { 
+      isDeleted: false,
+      status: 'unpaid',
+      date: { $gte: startOfDay, $lte: endOfDay }
+    };
+
+    if (branchId) {
+      filter.branchId = String(branchId);
+    }
+
+    const orders = await Order.find(filter).sort({ createdAt: -1 });
+
+    // Calculate totals
+    const totalsAgg = await Order.aggregate([
+      { $match: filter },
+      { $group: { _id: null, total: { $sum: '$total' }, count: { $sum: 1 } } }
+    ]);
+    const summary = totalsAgg[0] || { total: 0, count: 0 };
+
+    res.json({ 
+      message: 'Unpaid orders for today retrieved successfully',
+      data: orders, 
+      summary,
+      date: today.toISOString().split('T')[0]
+    });
+  } catch (err: any) {
+    res.status(500).json({ message: err?.message || 'Failed to fetch unpaid orders for today' });
+  }
+};

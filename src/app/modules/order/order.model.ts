@@ -53,7 +53,7 @@ const OrderSchema: Schema = new Schema(
     startDate: { type: String, trim: true },
     endDate: { type: String, trim: true },
     paymentMode: { type: String, trim: true },
-    orderType: { type: String, enum: ['DineIn', 'TakeAway', 'Delivery' , 'restaurant', 'online', 'membership'] },
+    orderType: { type: String, enum: ['DineIn', 'TakeAway', 'Delivery' , 'restaurant', 'online', 'membership', 'NewMembership', 'MembershipMeal'] },
     salesType: { type: String, enum: ['restaurant', 'online', 'membership'] },
     payments: {
       type: [

@@ -25,7 +25,7 @@ export const orderCreateValidation = z.object({
   endDate: z.string().optional(),
   paymentMode: z.string().optional(),
   // orderType: z.enum(['DineIn', 'TakeAway', 'Delivery']).optional(),
-  orderType: z.enum(['restaurant', 'online', 'membership', 'DineIn', 'TakeAway', 'Delivery']).optional(),
+  orderType: z.enum(['restaurant', 'online', 'membership', 'DineIn', 'TakeAway', 'Delivery', 'NewMembership', 'MembershipMeal']).optional(),
 
   branchId: z.string().optional(),
   brand: z.string().optional(),
@@ -71,6 +71,7 @@ export const orderCreateValidation = z.object({
   shippingCharge: z.number().min(0).optional(),
   rounding: z.number().optional(),
   payableAmount: z.number().min(0).optional(),
+  receiveAmount: z.number().min(0).optional(),
   changeAmount: z.number().min(0).optional(),
   dueAmount: z.number().min(0).optional(),
   note: z.string().optional(),

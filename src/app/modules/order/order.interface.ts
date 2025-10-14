@@ -34,7 +34,7 @@ export interface IOrder extends Document {
   startDate?: string;
   endDate?: string;
   paymentMode?: string;
-  orderType?: 'DineIn' | 'TakeAway' | 'Delivery';
+  orderType?: 'DineIn' | 'TakeAway' | 'Delivery' | 'NewMembership' | 'MembershipMeal';
   salesType?: 'restaurant' | 'online' | 'membership';
   payments?: Array<{ type: 'Cash' | 'Card' | 'Gateway'; amount: number }>;
   membership?: {
