@@ -1048,7 +1048,7 @@ export const generateThermalReceipt = async (req: Request, res: Response): Promi
 
       if (daySalesData) {
         // Use stored DaySales data with denomination
-        thermalData = formatThermalReceiptFromDaySales(daySalesData, date, timezone);
+        thermalData = await formatThermalReceiptFromDaySales(daySalesData, date, timezone);
       } else {
         // Fallback: Get orders and calculate (for days without DaySales record)
         const startOfDay = new Date(date + 'T00:00:00.000Z');
@@ -1173,7 +1173,7 @@ export const generateThermalReceiptJson = async (req: Request, res: Response): P
 
       if (daySalesData) {
         // Use stored DaySales data with denomination
-        thermalData = formatThermalReceiptFromDaySales(daySalesData, date, timezone);
+        thermalData = await formatThermalReceiptFromDaySales(daySalesData, date, timezone);
       } else {
         // Fallback: Get orders and calculate (for days without DaySales record)
         const startOfDay = new Date(date + 'T00:00:00.000Z');
@@ -1194,7 +1194,6 @@ export const generateThermalReceiptJson = async (req: Request, res: Response): P
               }
             }
           ],
-          status: 'paid',
           canceled: { $ne: true },
           isDeleted: { $ne: true }
         };
@@ -1252,9 +1251,71 @@ export const generateThermalReceiptJson = async (req: Request, res: Response): P
  * @param timezone - Timezone for date formatting
  * @returns Formatted thermal receipt data
  */
-const formatThermalReceiptFromDaySales = (daySalesData: any, date: string, timezone: string) => {
+const formatThermalReceiptFromDaySales = async (daySalesData: any, date: string, timezone: string) => {
   const daySales = daySalesData.daySales;
   const shiftWiseSales = daySalesData.shiftWiseSales;
+  
+  // Calculate membership breakdown from actual orders if not available in DaySales
+  let membershipMeal = 0;
+  let membershipRegister = 0;
+  
+  // Check if DaySales has separate membership fields
+  if (daySales.salesByType?.membershipMeal !== undefined && daySales.salesByType?.membershipRegister !== undefined) {
+    membershipMeal = daySales.salesByType.membershipMeal;
+    membershipRegister = daySales.salesByType.membershipRegister;
+  } else {
+    // Calculate from actual orders
+    const startOfDay = new Date(date + 'T00:00:00.000Z');
+    const endOfDay = new Date(date + 'T23:59:59.999Z');
+    
+    const orderQuery: any = {
+      $or: [
+        {
+          createdAt: {
+            $gte: startOfDay,
+            $lte: endOfDay
+          }
+        },
+        {
+          updatedAt: {
+            $gte: startOfDay,
+            $lte: endOfDay
+          }
+        }
+      ],
+      salesType: 'membership',
+      canceled: { $ne: true },
+      isDeleted: { $ne: true }
+    };
+
+    if (daySalesData.branchId) {
+      orderQuery.branchId = daySalesData.branchId;
+    }
+
+    const membershipOrders = await Order.find(orderQuery).lean();
+    
+    membershipOrders.forEach(order => {
+      const orderTotal = order.total || 0;
+      const discountAmount = order.discountAmount || 0;
+      
+      // Calculate actual order amount from payments
+      let actualOrderAmount = 0;
+      if (order.payments && order.payments.length > 0) {
+        actualOrderAmount = order.payments.reduce((sum: number, payment: any) => sum + (payment.amount || 0), 0);
+      } else {
+        actualOrderAmount = order.payableAmount || orderTotal;
+      }
+      
+      if (order.orderType === 'MembershipMeal') {
+        membershipMeal += actualOrderAmount;
+      } else if (order.orderType === 'NewMembership') {
+        membershipRegister += actualOrderAmount;
+      } else {
+        // Fallback for other membership order types
+        membershipMeal += actualOrderAmount;
+      }
+    });
+  }
   
   // Format date for display
   const displayDate = new Date(date).toLocaleDateString('en-GB', {
@@ -1296,8 +1357,8 @@ const formatThermalReceiptFromDaySales = (daySalesData: any, date: string, timez
     },
     salesDetails: {
       restaurantSales: (daySales.salesByType?.restaurant || 0).toFixed(2),
-      membershipMeal: (daySales.salesByType?.membership || 0).toFixed(2),
-      membershipRegister: "0.00" // This would need separate tracking if needed
+      membershipMeal: membershipMeal.toFixed(2),
+      membershipRegister: membershipRegister.toFixed(2)
     },
     collectionDetails: {
       cashSalesAmount: (daySales.payments?.cash || 0).toFixed(2),
@@ -1394,12 +1455,14 @@ const formatThermalReceiptData = (orders: any[], date: string, timezone: string)
       // Online sales should be categorized as online
       onlineSales += actualOrderAmount;
     } else if (order.salesType === 'membership') {
-      // For membership sales type, check if it's a meal or registration
-      if (order.orderType === 'membership') {
+      // For membership sales type, check the order type to distinguish between meal and registration
+      if (order.orderType === 'MembershipMeal') {
         membershipMeal += actualOrderAmount;
-      } else {
-        // If it's membership sales type but not membership order type, it's registration
+      } else if (order.orderType === 'NewMembership') {
         membershipRegister += actualOrderAmount;
+      } else {
+        // Fallback for other membership order types
+        membershipMeal += actualOrderAmount;
       }
     } else {
       // For any other sales type, add to restaurant sales as fallback
@@ -1679,7 +1742,7 @@ const collectComprehensiveReportData = async (targetDates: string[], branchId?: 
         denomination: daySalesData?.denomination || null,
         totalShifts: daySalesData?.totalShifts || shiftData.length,
         // Thermal receipt data - only if we have DaySales data
-        thermalReceiptData: payload?.includeThermalReceipt && daySalesData ? formatThermalReceiptFromDaySales(daySalesData, date, 'Asia/Dubai') : null
+          thermalReceiptData: payload?.includeThermalReceipt && daySalesData ? await formatThermalReceiptFromDaySales(daySalesData, date, 'Asia/Dubai') : null
       };
 
       reportData.push(dayReport);
