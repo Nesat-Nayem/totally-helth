@@ -746,6 +746,10 @@ export const dayClose = async (req: Request, res: Response): Promise<void> => {
         dayCloseTime: now.toISOString(),
         closedBy: userId,
         daySales: daySalesData,
+        membershipBreakdown: {
+          membershipMeal: daySalesData?.membershipBreakdown?.membershipMeal || 0,
+          membershipRegister: daySalesData?.membershipBreakdown?.membershipRegister || 0
+        },
         summary: {
           dayWise: {
             totalOrders: daySalesData?.totalOrders || 0,
@@ -782,6 +786,10 @@ export const dayClose = async (req: Request, res: Response): Promise<void> => {
         card: number;
         online: number;
       };
+      membershipBreakdown: {
+        membershipMeal: number;
+        membershipRegister: number;
+      };
       shifts: any[];
     } = {
       totalShifts: shiftsToClose.length,
@@ -791,6 +799,10 @@ export const dayClose = async (req: Request, res: Response): Promise<void> => {
         cash: 0,
         card: 0,
         online: 0
+      },
+      membershipBreakdown: {
+        membershipMeal: 0,
+        membershipRegister: 0
       },
       shifts: [] // Array to store IShiftSalesSummary
     };
@@ -824,6 +836,8 @@ export const dayClose = async (req: Request, res: Response): Promise<void> => {
         shiftWiseTotals.totalPayments.cash += shift.sales.payments?.cash || 0;
         shiftWiseTotals.totalPayments.card += shift.sales.payments?.card || 0;
         shiftWiseTotals.totalPayments.online += shift.sales.payments?.online || 0;
+        shiftWiseTotals.membershipBreakdown.membershipMeal += shift.sales.membershipBreakdown?.membershipMeal || 0;
+        shiftWiseTotals.membershipBreakdown.membershipRegister += shift.sales.membershipBreakdown?.membershipRegister || 0;
         
         shiftWiseTotals.shifts.push({
           shiftId: (shift._id as any).toString(),
@@ -881,6 +895,10 @@ export const dayClose = async (req: Request, res: Response): Promise<void> => {
       closedBy: userId,
       daySales: daySalesData,
       shiftWiseTotals: shiftWiseTotals,
+      membershipBreakdown: {
+        membershipMeal: daySalesData?.membershipBreakdown?.membershipMeal || 0,
+        membershipRegister: daySalesData?.membershipBreakdown?.membershipRegister || 0
+      },
       summary: {
         dayWise: {
           totalOrders: daySalesData?.totalOrders || 0,

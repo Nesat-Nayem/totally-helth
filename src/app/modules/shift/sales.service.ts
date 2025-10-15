@@ -67,6 +67,10 @@ export const calculateSales = async (
         online: 0,
         membership: 0,
       },
+      membershipBreakdown: {
+        membershipMeal: 0,
+        membershipRegister: 0,
+      },
     };
 
     // Process each order
@@ -113,6 +117,13 @@ export const calculateSales = async (
         sales.salesByType.online += orderTotal;
       } else if (order.salesType === 'membership') {
         sales.salesByType.membership += orderTotal;
+        
+        // Further categorize membership orders by orderType
+        if (order.orderType === 'MembershipMeal') {
+          sales.membershipBreakdown.membershipMeal += orderTotal;
+        } else if (order.orderType === 'NewMembership') {
+          sales.membershipBreakdown.membershipRegister += orderTotal;
+        }
       } else {
         // Fallback to restaurant for unknown sales types
         sales.salesByType.restaurant += orderTotal;
@@ -130,6 +141,7 @@ export const calculateSales = async (
       totalVat: 0,
       payments: { cash: 0, card: 0, online: 0 },
       salesByType: { restaurant: 0, online: 0, membership: 0 },
+      membershipBreakdown: { membershipMeal: 0, membershipRegister: 0 },
     };
   }
 };

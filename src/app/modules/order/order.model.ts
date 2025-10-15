@@ -11,6 +11,7 @@ const OrderItemSchema = new Schema<IOrderItem>(
   { _id: false }
 );
 
+
 const OrderSchema: Schema = new Schema(
   {
     orderNo: { type: String, trim: true },
@@ -47,6 +48,7 @@ const OrderSchema: Schema = new Schema(
     rounding: { type: Number, default: 0 },
     payableAmount: { type: Number, min: 0 },
     receiveAmount: { type: Number, min: 0 },
+    cumulativePaid: { type: Number, min: 0, default: 0 },
     changeAmount: { type: Number, min: 0 },
     dueAmount: { type: Number, min: 0 },
     note: { type: String, trim: true },
@@ -95,6 +97,34 @@ const OrderSchema: Schema = new Schema(
     dayCloseStart: { type: Date },
     dayCloseEnd: { type: Date },
     isDeleted: { type: Boolean, default: false },
+    paymentHistory: {
+      type: new Schema(
+        {
+          totalPaid: { type: Number, min: 0, default: 0 },
+          entries: [
+            new Schema(
+              {
+                timestamp: { type: Date, default: Date.now },
+                action: { type: String, trim: true },
+                total: { type: Number, min: 0 },
+                paid: { type: Number, min: 0 },
+                remaining: { type: Number, min: 0 },
+                payments: [
+                  {
+                    type: { type: String, trim: true },
+                    amount: { type: Number, min: 0 }
+                  }
+                ],
+                description: { type: String, trim: true },
+              },
+              { _id: false }
+            ),
+          ],
+        },
+        { _id: false }
+      ),
+      default: { totalPaid: 0, entries: [] },
+    },
   },
   {
     timestamps: true,

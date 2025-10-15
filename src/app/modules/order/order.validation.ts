@@ -23,7 +23,7 @@ export const orderCreateValidation = z.object({
   total: z.number().nonnegative(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  paymentMode: z.string().optional(),
+  // paymentMode: z.string().optional(), // Removed - using payments array instead
   // orderType: z.enum(['DineIn', 'TakeAway', 'Delivery']).optional(),
   orderType: z.enum(['restaurant', 'online', 'membership', 'DineIn', 'TakeAway', 'Delivery', 'NewMembership', 'MembershipMeal']).optional(),
 
@@ -72,6 +72,7 @@ export const orderCreateValidation = z.object({
   rounding: z.number().optional(),
   payableAmount: z.number().min(0).optional(),
   receiveAmount: z.number().min(0).optional(),
+  cumulativePaid: z.number().min(0).optional(),
   changeAmount: z.number().min(0).optional(),
   dueAmount: z.number().min(0).optional(),
   note: z.string().optional(),

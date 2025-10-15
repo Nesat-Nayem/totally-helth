@@ -7,6 +7,7 @@ export interface IOrderItem {
   qty: number;
 }
 
+
 export interface IOrder extends Document {
   orderNo?: string;
   invoiceNo: string;
@@ -28,6 +29,7 @@ export interface IOrder extends Document {
   rounding?: number;
   payableAmount?: number;
   receiveAmount?: number;
+  cumulativePaid?: number;
   changeAmount?: number;
   dueAmount?: number;
   note?: string;
@@ -60,6 +62,18 @@ export interface IOrder extends Document {
   dayCloseStart?: Date | string;
   dayCloseEnd?: Date | string;
   isDeleted?: boolean;
+  paymentHistory?: {
+    totalPaid: number;
+    entries: Array<{
+      timestamp: Date;
+      action: string;
+      total: number;
+      paid: number;
+      remaining: number;
+      payments: Array<{ type: string; amount: number }>;
+      description: string;
+    }>;
+  };
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }

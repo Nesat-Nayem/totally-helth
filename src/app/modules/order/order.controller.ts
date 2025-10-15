@@ -4,6 +4,7 @@ import { Order } from './order.model';
 import { orderCreateValidation, orderUpdateValidation } from './order.validation';
 import { Counter } from '../../services/counter.model';
 import { userInterface } from '../../middlewares/userInterface';
+import { updateOrderWithAutoTracking, createInitialHistoryEntry } from './paymentTracking.service';
 
 function dateStamp() {
   const d = new Date();
@@ -51,6 +52,11 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
     };
 
     const created = await Order.create(orderData);
+
+    // Add initial payment history entry for new orders
+    const initialPaymentHistory = createInitialHistoryEntry(created);
+    created.paymentHistory = initialPaymentHistory;
+    await created.save();
 
     // If middleware provided custom timestamps (for day close scenarios), update them
     // Access timestamps directly from req.body since validation strips them out
@@ -268,16 +274,20 @@ export const getOrderById = async (req: Request, res: Response): Promise<void> =
 export const updateOrderById = async (req: Request, res: Response): Promise<void> => {
   try {
     const payload = orderUpdateValidation.parse(req.body);
-    const item = await Order.findOneAndUpdate(
-      { _id: req.params.id, isDeleted: false },
-      payload.date ? { ...payload, date: new Date(payload.date as any) } : payload,
-      { new: true }
-    );
-    if (!item) {
+    const { id } = req.params;
+    
+    const updatedOrder = await updateOrderWithAutoTracking(id, payload);
+    
+    if (!updatedOrder) {
       res.status(404).json({ message: 'Order not found' });
       return;
     }
-    res.json({ message: 'Order updated', data: item });
+
+    res.json({ 
+      message: 'Order updated successfully', 
+      data: updatedOrder,
+      success: true
+    });
   } catch (err: any) {
     if (err instanceof ZodError) {
       res.status(400).json({ message: err.issues?.[0]?.message || 'Validation error' });
