@@ -15,7 +15,9 @@ const calculatePaidAmount = (order: any) => {
 // Helper function to get payment details from payments array
 const getPaymentDetails = (order: any) => {
   if (order.payments && Array.isArray(order.payments) && order.payments.length > 0) {
-    return order.payments.map((payment: any) => `${payment.amount} ${payment.type}`).join(', ');
+    return order.payments.map((payment: any) => 
+      `${payment.amount} ${payment.type}${payment.methodType ? ` (${payment.methodType})` : ''}`
+    ).join(', ');
   }
   return 'No payments';
 };
@@ -92,7 +94,9 @@ export const updateOrderWithAutoTracking = async (orderId: string, updateData: a
   else if (newTotal < previousTotal) action = 'remove_item';
   else if (newPaid > previousPaid) action = 'payment_received';
   else if (newPaid < previousPaid) action = 'payment_received'; // Payment decreased
-  // Removed payment_mode_changed - using payments array instead
+  else if (JSON.stringify(previousPaymentBreakdown) !== JSON.stringify(newPaymentBreakdown)) {
+    action = 'payment_mode_changed'; // Payment mode changed but amount remains same
+  }
   
   const historyEntry = {
     timestamp: new Date(),

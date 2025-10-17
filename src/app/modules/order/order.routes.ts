@@ -1,7 +1,7 @@
 import express from 'express';
 import { auth } from '../../middlewares/authMiddleware';
 import { dayCloseMiddleware } from '../../middlewares/dayCloseMiddleware';
-import { createOrder, deleteOrderById, getOrderById, getOrders, updateOrderById, holdMembership, unholdMembership, cancelOrder, getPaidOrdersToday, getUnpaidOrdersToday } from './order.controller';
+import { createOrder, deleteOrderById, getOrderById, getOrders, updateOrderById, holdMembership, unholdMembership, cancelOrder, getPaidOrdersToday, getUnpaidOrdersToday, changePaymentModeSimple } from './order.controller';
 
 const router = express.Router();
 
@@ -30,6 +30,9 @@ router.get('/:id', auth('admin'), getOrderById);
 
 // Update (admin)
 router.put('/:id', auth('admin'), updateOrderById);
+
+// Simple payment mode change (admin) - just pass payment mode, system handles the rest
+router.patch('/:id/payment-mode-simple', auth('admin'), changePaymentModeSimple);
 
 // Soft delete (admin)
 router.delete('/:id', auth('admin'), deleteOrderById);

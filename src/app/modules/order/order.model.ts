@@ -61,7 +61,8 @@ const OrderSchema: Schema = new Schema(
       type: [
         new Schema(
           {
-            type: { type: String, enum: ['Cash', 'Card', 'Gateway'], trim: true },
+            type: { type: String, enum: ['Cash', 'Card', 'Gateway', 'Online Transfer', 'Payment Link'], trim: true },
+            methodType: { type: String, enum: ['direct', 'split'], default: 'direct', trim: true },
             amount: { type: Number, min: 0 },
           },
           { _id: false }
@@ -101,6 +102,14 @@ const OrderSchema: Schema = new Schema(
       type: new Schema(
         {
           totalPaid: { type: Number, min: 0, default: 0 },
+          changeSequence: {
+            type: [{
+              from: [{ type: String, trim: true }],   // Previous modes
+              to: [{ type: String, trim: true }],     // New modes
+              timestamp: { type: Date, default: Date.now }
+            }],
+            default: []
+          },
           entries: [
             new Schema(
               {
@@ -112,6 +121,7 @@ const OrderSchema: Schema = new Schema(
                 payments: [
                   {
                     type: { type: String, trim: true },
+                    methodType: { type: String, trim: true },
                     amount: { type: Number, min: 0 }
                   }
                 ],
@@ -129,7 +139,7 @@ const OrderSchema: Schema = new Schema(
   {
     timestamps: true,
     toJSON: {
-      transform: function (doc, ret) {
+      transform: function (doc: any, ret: any) {
         const r: any = ret as any;
         if (r.createdAt) {
           r.createdAt = new Date(r.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });

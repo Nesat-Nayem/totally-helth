@@ -45,7 +45,8 @@ export const orderCreateValidation = z.object({
   payments: z
     .array(
       z.object({
-        type: z.enum(['Cash', 'Card', 'Gateway']),
+        type: z.enum(['Cash', 'Card', 'Gateway', 'Online Transfer', 'Payment Link']),
+        methodType: z.enum(['direct', 'split']).default('direct'),
         amount: z.number().min(0),
       })
     )
@@ -86,3 +87,8 @@ export const orderCreateValidation = z.object({
 ;
 
 export const orderUpdateValidation = orderCreateValidation.partial();
+
+// Simple validation schema for changing payment mode to a single type
+export const simplePaymentModeChangeValidation = z.object({
+  paymentMode: z.enum(['Cash', 'Card', 'Gateway', 'Online Transfer', 'Payment Link']),
+});
