@@ -5,6 +5,9 @@ export interface IOrderItem {
   title: string;
   price: number;
   qty: number;
+  moreOptions?: Array<{
+    name: string;
+  }>;
 }
 
 

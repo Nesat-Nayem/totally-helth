@@ -7,6 +7,17 @@ const OrderItemSchema = new Schema<IOrderItem>(
     title: { type: String, required: true, trim: true },
     price: { type: Number, required: true, min: 0 },
     qty: { type: Number, required: true, min: 1 },
+    moreOptions: {
+      type: [
+        new Schema(
+          {
+            name: { type: String, required: true, trim: true },
+          },
+          { _id: false }
+        ),
+      ],
+      default: [],
+    },
   },
   { _id: false }
 );

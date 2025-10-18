@@ -5,6 +5,11 @@ export const orderItemSchema = z.object({
   title: z.string().min(1),
   price: z.number().nonnegative(),
   qty: z.number().int().positive(),
+  moreOptions: z.array(
+    z.object({
+      name: z.string().min(1),
+    })
+  ).optional(),
 });
 
 export const orderCreateValidation = z.object({
