@@ -13,6 +13,7 @@ import {
   verifyOtp
 } from "./auth.controller";
 import { auth } from "../../middlewares/authMiddleware";
+import { roleRouter } from "./role.routes";
 
 const router = express.Router();
 
@@ -385,5 +386,7 @@ router.post("/request-otp", requestOtp);
  */
 router.post("/verify-otp", verifyOtp);
 
+// Include role management routes
+router.use('/', roleRouter);
 
 export const authRouter = router;
