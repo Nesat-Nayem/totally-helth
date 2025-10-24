@@ -17,7 +17,7 @@ This system uses a simplified approach where roles are managed directly within t
 - `email`: User's email address (unique)
 - `password`: Hashed password using bcrypt
 - `phone`: User's phone number (unique)
-- `role`: User's role - can be 'admin', 'vendor', 'user', 'Super Admin', 'Admin', 'Manager', 'Supervisor', 'Cashier', 'Waiter', 'Staff' (case-insensitive for role management)
+- `role`: User's role - can be 'admin', 'vendor', 'user', 'super admin', 'manager', 'supervisor', 'cashier', 'waiter', 'staff'
 - `menuAccess`: Object containing menu permissions
 - `status`: User status ('active', 'inactive', 'pending')
 - `img`: Profile image URL
@@ -133,20 +133,20 @@ All role management endpoints require **Admin access** using the `auth('admin')`
 - Email format validation
 - Phone number validation
 - Password minimum length (6 characters)
-- Role enum validation (case-insensitive - accepts both 'Admin' and 'admin')
+- Role enum validation (lowercase only)
 - Menu access structure validation
 - All validation logic is centralized in `role.validation.ts`
-- Role values are automatically converted to proper case (e.g., 'admin' → 'Admin')
+- Role values are stored in lowercase format
 
 ## Available Roles
 The system supports the following roles in hierarchical order:
-1. **Super Admin** - Highest level access
-2. **Admin** - Administrative access
-3. **Manager** - Management level access
-4. **Supervisor** - Supervisory access
-5. **Cashier** - Cash handling access
-6. **Waiter** - Service access
-7. **Staff** - Basic staff access
+1. **super admin** - Highest level access
+2. **admin** - Administrative access
+3. **manager** - Management level access
+4. **supervisor** - Supervisory access
+5. **cashier** - Cash handling access
+6. **waiter** - Service access
+7. **staff** - Basic staff access
 
 Plus legacy roles: `admin`, `vendor`, `user`
 
@@ -159,7 +159,7 @@ const roleData = {
   email: "jane@example.com",
   password: "manager123",
   phone: "9876543210",
-  role: "Manager",
+  role: "manager",
   menuAccess: {
     "pos-module": {
       checked: true,

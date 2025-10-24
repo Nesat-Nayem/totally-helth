@@ -4,13 +4,13 @@ import { createBranch, deleteBranch, getBranchById, getBranches, updateBranch } 
 
 const router = express.Router();
 
-// Public list for login branch selection
-router.get('/', getBranches);
-router.get('/:id', getBranchById);
+// Get branches
+router.get('/', auth(), getBranches);
+router.get('/:id', auth(), getBranchById);
 
-// Protected admin operations
-router.post('/', auth('admin'), createBranch);
-router.patch('/:id', auth('admin'), updateBranch);
-router.delete('/:id', auth('admin'), deleteBranch);
+// Protected operations - let global access control handle permissions
+router.post('/', auth(), createBranch);
+router.patch('/:id', auth(), updateBranch);
+router.delete('/:id', auth(), deleteBranch);
 
 export const branchRouter = router;

@@ -149,12 +149,19 @@ export const verifyOtp: RequestHandler = async (req, res, next): Promise<void> =
     // Remove password from response
     const { password: _, ...userObject } = user.toObject();
     
+    // Include role and menuAccess in response for frontend
+    const responseData = {
+      ...userObject,
+      role: user.role,
+      menuAccess: user.menuAccess || {}
+    };
+    
     res.json({
       success: true,
       statusCode: 200,
       message: "OTP verified successfully",
       token,
-      data: userObject
+      data: responseData
     });
     return;
   } catch (error: any) {
@@ -280,12 +287,20 @@ export const loginController: RequestHandler = async (req, res, next): Promise<v
     // remove password
     const { password: _, ...userObject } = user.toObject();
 
+    // Include role and menuAccess in response for frontend
+    const responseData = {
+      ...userObject,
+      ...(extras || {}),
+      role: user.role,
+      menuAccess: user.menuAccess || {}
+    };
+
     res.json({
       success: true,
       statusCode: 200,
       message: "User logged in successfully",
       token,
-      data: { ...userObject, ...(extras || {}) },
+      data: responseData,
     });
     return;
   } catch (error: any) {

@@ -1,15 +1,14 @@
 import express from 'express';
 import { getPrivacyPolicy, updatePrivacyPolicy } from './privacy-policy.controller';
 import { auth } from '../../middlewares/authMiddleware';
-import { adminMiddleware } from '../../middlewares/adminMiddleware';
 
 const router = express.Router();
 
-// Get privacy policy (public)
-router.get('/', getPrivacyPolicy);
+// Get privacy policy
+router.get('/', auth(), getPrivacyPolicy);
 
-// Update privacy policy (admin only)
-router.put('/', auth('admin'), updatePrivacyPolicy);
+// Update privacy policy
+router.put('/', auth(), updatePrivacyPolicy);
 
 
 export const privacyPolicyRouter = router;

@@ -4,10 +4,10 @@ import { createMoreOption, deleteMoreOption, getMoreOptionById, getMoreOptions, 
 
 const router = express.Router();
 
-router.get('/', getMoreOptions);
-router.get('/:id', getMoreOptionById);
-router.post('/', auth('admin'), createMoreOption);
-router.patch('/:id', auth('admin'), updateMoreOption);
-router.delete('/:id', auth('admin'), deleteMoreOption);
+router.get('/', auth(), getMoreOptions);
+router.get('/:id', auth(), getMoreOptionById);
+router.post('/', auth(), createMoreOption);
+router.patch('/:id', auth(), updateMoreOption);
+router.delete('/:id', auth(), deleteMoreOption);
 
 export const moreOptionRouter = router;

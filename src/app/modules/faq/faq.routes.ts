@@ -8,26 +8,25 @@ import {
   generateFAQAnswer
 } from './faq.controller';
 import { auth } from '../../middlewares/authMiddleware';
-import { adminMiddleware } from '../../middlewares/adminMiddleware';
 
 const router = express.Router();
 
-// Create a new FAQ (admin only)
-router.post('/', auth('admin'), createFAQ);
+// Create a new FAQ
+router.post('/', auth(), createFAQ);
 
-// Get all FAQs (public)
-router.get('/', getAllFAQs);
+// Get all FAQs
+router.get('/', auth(), getAllFAQs);
 
-// Get a single FAQ by ID (public)
-router.get('/:id', getFAQById);
+// Get a single FAQ by ID
+router.get('/:id', auth(), getFAQById);
 
-// Update a FAQ by ID (admin only)
-router.put('/:id', auth('admin'), updateFAQById);
+// Update a FAQ by ID
+router.put('/:id', auth(), updateFAQById);
 
-// Delete a FAQ by ID (admin only)
-router.delete('/:id', auth('admin'), deleteFAQById);
+// Delete a FAQ by ID
+router.delete('/:id', auth(), deleteFAQById);
 
 // Generate FAQ answer using AI
-router.post('/generate-answer', auth('admin'), generateFAQAnswer);
+router.post('/generate-answer', auth(), generateFAQAnswer);
 
 export const faqRouter = router;

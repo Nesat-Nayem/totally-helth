@@ -2,23 +2,23 @@ import { z } from 'zod';
 
 // Define role constants to avoid duplication
 const ROLE_OPTIONS = [
-  'Super Admin',
-  'Admin', 
-  'Manager',
-  'Supervisor',
-  'Cashier',
-  'Waiter',
-  'Staff'
+  'super admin',
+  'admin', 
+  'manager',
+  'supervisor',
+  'cashier',
+  'waiter',
+  'staff'
 ] as const;
 
 const ROLE_MAPPING: Record<string, string> = {
-  'super admin': 'Super Admin',
-  'admin': 'Admin',
-  'manager': 'Manager',
-  'supervisor': 'Supervisor',
-  'cashier': 'Cashier',
-  'waiter': 'Waiter',
-  'staff': 'Staff'
+  'super admin': 'super admin',
+  'admin': 'admin',
+  'manager': 'manager',
+  'supervisor': 'supervisor',
+  'cashier': 'cashier',
+  'waiter': 'waiter',
+  'staff': 'staff'
 };
 
 // Create Role Validation Schema
@@ -27,10 +27,7 @@ export const createRoleSchema = z.object({
   email: z.string().email('Invalid email format').toLowerCase(),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   phone: z.string().min(1, 'Phone is required'),
-  role: z.enum(ROLE_OPTIONS).transform(val => {
-    // Convert to proper case if needed
-    return ROLE_MAPPING[val.toLowerCase()] || val;
-  }),
+  role: z.enum(ROLE_OPTIONS),
   menuAccess: z.record(z.string(), z.object({
     checked: z.boolean(),
     children: z.record(z.string(), z.boolean()).optional()
@@ -43,10 +40,7 @@ export const updateRoleSchema = z.object({
   email: z.string().email('Invalid email format').toLowerCase().optional(),
   password: z.string().min(6, 'Password must be at least 6 characters').optional(),
   phone: z.string().min(1, 'Phone is required').optional(),
-  role: z.enum(ROLE_OPTIONS).transform(val => {
-    // Convert to proper case if needed
-    return ROLE_MAPPING[val.toLowerCase()] || val;
-  }).optional(),
+  role: z.enum(ROLE_OPTIONS).optional(),
   menuAccess: z.record(z.string(), z.object({
     checked: z.boolean(),
     children: z.record(z.string(), z.boolean()).optional()

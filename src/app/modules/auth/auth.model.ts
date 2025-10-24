@@ -43,7 +43,7 @@ export interface IUser extends Document {
   password: string;
   phone: string;
   email: string;
-  role: 'admin' | 'vendor' | 'user' | 'Super Admin' | 'Admin' | 'Manager' | 'Supervisor' | 'Cashier' | 'Waiter' | 'Staff';
+  role: 'admin' | 'vendor' | 'user' | 'super admin' | 'manager' | 'supervisor' | 'cashier' | 'waiter' | 'staff';
   menuAccess?: Record<string, {
     checked: boolean;
     children?: Record<string, boolean>;
@@ -67,7 +67,7 @@ const userSchema: Schema = new Schema(
     img: { type: String },
     role: { 
       type: String, 
-      enum: ['admin', 'vendor', 'user', 'Super Admin', 'Admin', 'Manager', 'Supervisor', 'Cashier', 'Waiter', 'Staff'], 
+      enum: ['admin', 'vendor', 'user', 'super admin', 'manager', 'supervisor', 'cashier', 'waiter', 'staff'], 
       default: 'user' 
     },
     menuAccess: {

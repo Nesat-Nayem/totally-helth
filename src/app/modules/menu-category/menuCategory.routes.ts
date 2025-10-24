@@ -4,10 +4,10 @@ import { createMenuCategory, deleteMenuCategory, getMenuCategories, getMenuCateg
 
 const router = express.Router();
 
-router.get('/', getMenuCategories);
-router.get('/:id', getMenuCategoryById);
-router.post('/', auth('admin'), createMenuCategory);
-router.patch('/:id', auth('admin'), updateMenuCategory);
-router.delete('/:id', auth('admin'), deleteMenuCategory);
+router.get('/', auth(), getMenuCategories);
+router.get('/:id', auth(), getMenuCategoryById);
+router.post('/', auth(), createMenuCategory);
+router.patch('/:id', auth(), updateMenuCategory);
+router.delete('/:id', auth(), deleteMenuCategory);
 
 export const menuCategoryRouter = router;

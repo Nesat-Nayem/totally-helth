@@ -72,7 +72,7 @@ const router = express.Router();
  */
 router.post(
   '/',
-  auth('admin'),
+  auth(),
   upload.fields([
     { name: 'images', maxCount: 10 },
     { name: 'thumbnail', maxCount: 1 },
@@ -122,7 +122,7 @@ router.post(
  *       200:
  *         description: List of meal plans
  */
-router.get('/', getAllMealPlans);
+router.get('/', auth(), getAllMealPlans);
 
 /**
  * @swagger
@@ -143,7 +143,7 @@ router.get('/', getAllMealPlans);
  *       404:
  *         description: Not found
  */
-router.get('/:id', getMealPlanById);
+router.get('/:id', auth(), getMealPlanById);
 
 /**
  * @swagger
@@ -194,7 +194,7 @@ router.get('/:id', getMealPlanById);
  */
 router.put(
   '/:id',
-  auth('admin'),
+  auth(),
   upload.fields([
     { name: 'images', maxCount: 10 },
     { name: 'thumbnail', maxCount: 1 },
@@ -223,6 +223,6 @@ router.put(
  *       404:
  *         description: Not found
  */
-router.delete('/:id', auth('admin'), deleteMealPlanById);
+router.delete('/:id', auth(), deleteMealPlanById);
 
 export const mealPlanRouter = router;

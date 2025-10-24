@@ -4,10 +4,10 @@ import { createMenu, deleteMenu, getMenuById, getMenus, updateMenu } from './men
 
 const router = express.Router();
 
-router.get('/', getMenus);
-router.get('/:id', getMenuById);
-router.post('/', auth('admin'), createMenu);
-router.patch('/:id', auth('admin'), updateMenu);
-router.delete('/:id', auth('admin'), deleteMenu);
+router.get('/', auth(), getMenus);
+router.get('/:id', auth(), getMenuById);
+router.post('/', auth(), createMenu);
+router.patch('/:id', auth(), updateMenu);
+router.delete('/:id', auth(), deleteMenu);
 
 export const menuRouter = router;
