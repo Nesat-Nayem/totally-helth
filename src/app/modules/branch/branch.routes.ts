@@ -1,16 +1,15 @@
 import express from 'express';
-import { auth } from '../../middlewares/authMiddleware';
 import { createBranch, deleteBranch, getBranchById, getBranches, updateBranch } from './branch.controller';
 
 const router = express.Router();
 
 // Get branches
-router.get('/', auth(), getBranches);
-router.get('/:id', auth(), getBranchById);
+router.get('/', getBranches);
+router.get('/:id', getBranchById);
 
-// Protected operations - let global access control handle permissions
-router.post('/', auth(), createBranch);
-router.patch('/:id', auth(), updateBranch);
-router.delete('/:id', auth(), deleteBranch);
+// Branch operations - no authorization required
+router.post('/', createBranch);
+router.patch('/:id', updateBranch);
+router.delete('/:id', deleteBranch);
 
 export const branchRouter = router;

@@ -1,5 +1,4 @@
 import express from 'express';
-import { auth } from '../../middlewares/authMiddleware';
 import { upload } from '../../config/cloudinary';
 import {
   createMealPlan,
@@ -13,7 +12,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /meal-plans:
+ * /v1/api/meal-plans:
  *   post:
  *     summary: Create a meal plan
  *     tags:
@@ -72,7 +71,6 @@ const router = express.Router();
  */
 router.post(
   '/',
-  auth(),
   upload.fields([
     { name: 'images', maxCount: 10 },
     { name: 'thumbnail', maxCount: 1 },
@@ -82,7 +80,7 @@ router.post(
 
 /**
  * @swagger
- * /meal-plans:
+ * /v1/api/meal-plans:
  *   get:
  *     summary: Get all meal plans
  *     tags:
@@ -122,11 +120,11 @@ router.post(
  *       200:
  *         description: List of meal plans
  */
-router.get('/', auth(), getAllMealPlans);
+router.get('/', getAllMealPlans);
 
 /**
  * @swagger
- * /meal-plans/{id}:
+ * /v1/api/meal-plans/{id}:
  *   get:
  *     summary: Get meal plan by ID
  *     tags:
@@ -143,11 +141,11 @@ router.get('/', auth(), getAllMealPlans);
  *       404:
  *         description: Not found
  */
-router.get('/:id', auth(), getMealPlanById);
+router.get('/:id', getMealPlanById);
 
 /**
  * @swagger
- * /meal-plans/{id}:
+ * /v1/api/meal-plans/{id}:
  *   put:
  *     summary: Update a meal plan
  *     tags:
@@ -194,7 +192,6 @@ router.get('/:id', auth(), getMealPlanById);
  */
 router.put(
   '/:id',
-  auth(),
   upload.fields([
     { name: 'images', maxCount: 10 },
     { name: 'thumbnail', maxCount: 1 },
@@ -204,7 +201,7 @@ router.put(
 
 /**
  * @swagger
- * /meal-plans/{id}:
+ * /v1/api/meal-plans/{id}:
  *   delete:
  *     summary: Delete (soft) a meal plan
  *     tags:
@@ -223,6 +220,6 @@ router.put(
  *       404:
  *         description: Not found
  */
-router.delete('/:id', auth(), deleteMealPlanById);
+router.delete('/:id', deleteMealPlanById);
 
 export const mealPlanRouter = router;

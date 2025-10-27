@@ -21,6 +21,8 @@ export interface IMealPlan extends Document {
   weeksOffers?: IWeekOffer[];
   images?: string[]; // Cloudinary URLs
   thumbnail?: string; // main image
+  totalMeals?: number; // Total number of meals in the plan
+  durationDays?: number; // Duration of the plan in days
   status: 'active' | 'inactive';
   isDeleted: boolean;
   createdAt: Date;
