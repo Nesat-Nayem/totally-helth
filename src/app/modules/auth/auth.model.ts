@@ -43,7 +43,11 @@ export interface IUser extends Document {
   password: string;
   phone: string;
   email: string;
-  role: 'admin' | 'vendor'|'user';
+  role: 'admin' | 'vendor' | 'user' | 'super admin' | 'manager' | 'supervisor' | 'cashier' | 'waiter' | 'staff';
+  menuAccess?: Record<string, {
+    checked: boolean;
+    children?: Record<string, boolean>;
+  }>;
   otp?: string;
   otpExpires?: Date;
   packageFeatures?: string[];
@@ -61,7 +65,15 @@ const userSchema: Schema = new Schema(
     phone: { type: String, required: true },
     email: { type: String }, 
     img: { type: String },
-    role: { type: String, enum: ['admin','vendor', 'user'], default: 'user' },
+    role: { 
+      type: String, 
+      enum: ['admin', 'vendor', 'user', 'super admin', 'manager', 'supervisor', 'cashier', 'waiter', 'staff'], 
+      default: 'user' 
+    },
+    menuAccess: {
+      type: Schema.Types.Mixed,
+      default: {}
+    },
     status: { type: String, enum: ['pending', 'active'], default: 'active' },
     otp: { type: String },
     otpExpires: { type: Date },

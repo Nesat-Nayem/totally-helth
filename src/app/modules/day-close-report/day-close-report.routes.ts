@@ -73,7 +73,7 @@ router.get('/thermal/:date',auth('admin'), generateThermalReceipt);
  * @desc Generate thermal receipt data in JSON format for frontend processing
  * @access Admin
  */
-router.get('/thermal-json/:date', auth('admin'), generateThermalReceiptJson);
+router.get('/thermal-json/:date', generateThermalReceiptJson);
 
 
 export const dayCloseReportRouter = router;

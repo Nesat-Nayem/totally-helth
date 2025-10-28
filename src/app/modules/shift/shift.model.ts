@@ -38,6 +38,10 @@ const salesDefault = (): IShiftSales => ({
     online: 0,
     membership: 0,
   },
+  membershipBreakdown: {
+    membershipMeal: 0,
+    membershipRegister: 0,
+  },
 });
 
 /**

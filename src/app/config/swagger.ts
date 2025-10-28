@@ -54,6 +54,10 @@ const options: swaggerJSDoc.Options = {
         name: 'OTP',
         description: 'OTP verification endpoints',
       },
+      {
+        name: 'User Memberships',
+        description: 'User membership management endpoints',
+      },
     ],
     components: {
       securitySchemes: {

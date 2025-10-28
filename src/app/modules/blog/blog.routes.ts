@@ -1,7 +1,6 @@
 import express from 'express';
 import { getBlogs, getBlogById, createBlog, updateBlog, deleteBlog } from './blog.controller';
 import { auth } from '../../middlewares/authMiddleware';
-import { adminMiddleware } from '../../middlewares/adminMiddleware';
 import { upload } from '../../config/cloudinary';
 // import { upload } from '../../config/multer';
 

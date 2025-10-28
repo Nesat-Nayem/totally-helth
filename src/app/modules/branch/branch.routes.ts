@@ -1,16 +1,15 @@
 import express from 'express';
-import { auth } from '../../middlewares/authMiddleware';
 import { createBranch, deleteBranch, getBranchById, getBranches, updateBranch } from './branch.controller';
 
 const router = express.Router();
 
-// Public list for login branch selection
+// Get branches
 router.get('/', getBranches);
 router.get('/:id', getBranchById);
 
-// Protected admin operations
-router.post('/', auth('admin'), createBranch);
-router.patch('/:id', auth('admin'), updateBranch);
-router.delete('/:id', auth('admin'), deleteBranch);
+// Branch operations - no authorization required
+router.post('/', createBranch);
+router.patch('/:id', updateBranch);
+router.delete('/:id', deleteBranch);
 
 export const branchRouter = router;

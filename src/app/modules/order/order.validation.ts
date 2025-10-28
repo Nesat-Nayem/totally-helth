@@ -5,6 +5,11 @@ export const orderItemSchema = z.object({
   title: z.string().min(1),
   price: z.number().nonnegative(),
   qty: z.number().int().positive(),
+  moreOptions: z.array(
+    z.object({
+      name: z.string().min(1),
+    })
+  ).optional(),
 });
 
 export const orderCreateValidation = z.object({
@@ -23,9 +28,9 @@ export const orderCreateValidation = z.object({
   total: z.number().nonnegative(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  paymentMode: z.string().optional(),
+  // paymentMode: z.string().optional(), // Removed - using payments array instead
   // orderType: z.enum(['DineIn', 'TakeAway', 'Delivery']).optional(),
-  orderType: z.enum(['restaurant', 'online', 'membership', 'DineIn', 'TakeAway', 'Delivery']).optional(),
+  orderType: z.enum(['restaurant', 'online', 'membership', 'DineIn', 'TakeAway', 'Delivery', 'NewMembership', 'MembershipMeal']).optional(),
 
   branchId: z.string().optional(),
   brand: z.string().optional(),
@@ -45,7 +50,8 @@ export const orderCreateValidation = z.object({
   payments: z
     .array(
       z.object({
-        type: z.enum(['Cash', 'Card', 'Gateway']),
+        type: z.enum(['Cash', 'Card', 'Gateway', 'Online Transfer', 'Payment Link']),
+        methodType: z.enum(['direct', 'split']).default('direct'),
         amount: z.number().min(0),
       })
     )
@@ -71,6 +77,8 @@ export const orderCreateValidation = z.object({
   shippingCharge: z.number().min(0).optional(),
   rounding: z.number().optional(),
   payableAmount: z.number().min(0).optional(),
+  receiveAmount: z.number().min(0).optional(),
+  cumulativePaid: z.number().min(0).optional(),
   changeAmount: z.number().min(0).optional(),
   dueAmount: z.number().min(0).optional(),
   note: z.string().optional(),
@@ -84,3 +92,8 @@ export const orderCreateValidation = z.object({
 ;
 
 export const orderUpdateValidation = orderCreateValidation.partial();
+
+// Simple validation schema for changing payment mode to a single type
+export const simplePaymentModeChangeValidation = z.object({
+  paymentMode: z.enum(['Cash', 'Card', 'Gateway', 'Online Transfer', 'Payment Link']),
+});

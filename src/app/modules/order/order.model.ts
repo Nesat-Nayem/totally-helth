@@ -7,9 +7,21 @@ const OrderItemSchema = new Schema<IOrderItem>(
     title: { type: String, required: true, trim: true },
     price: { type: Number, required: true, min: 0 },
     qty: { type: Number, required: true, min: 1 },
+    moreOptions: {
+      type: [
+        new Schema(
+          {
+            name: { type: String, required: true, trim: true },
+          },
+          { _id: false }
+        ),
+      ],
+      default: [],
+    },
   },
   { _id: false }
 );
+
 
 const OrderSchema: Schema = new Schema(
   {
@@ -26,6 +38,7 @@ const OrderSchema: Schema = new Schema(
       type: [
         new Schema(
           {
+            // comment field is optional
             name: { type: String, required: true, trim: true },
             price: { type: Number, required: true, min: 0 },
             qty: { type: Number, required: true, min: 1, default: 1 },
@@ -35,6 +48,7 @@ const OrderSchema: Schema = new Schema(
       ],
       default: [],
     },
+    
     subTotal: { type: Number, required: true, min: 0 },
     total: { type: Number, required: true, min: 0 },
     vatPercent: { type: Number, min: 0 },
@@ -45,19 +59,21 @@ const OrderSchema: Schema = new Schema(
     rounding: { type: Number, default: 0 },
     payableAmount: { type: Number, min: 0 },
     receiveAmount: { type: Number, min: 0 },
+    cumulativePaid: { type: Number, min: 0, default: 0 },
     changeAmount: { type: Number, min: 0 },
     dueAmount: { type: Number, min: 0 },
     note: { type: String, trim: true },
     startDate: { type: String, trim: true },
     endDate: { type: String, trim: true },
     paymentMode: { type: String, trim: true },
-    orderType: { type: String, enum: ['DineIn', 'TakeAway', 'Delivery' , 'restaurant', 'online', 'membership'] },
+    orderType: { type: String, enum: ['DineIn', 'TakeAway', 'Delivery' , 'restaurant', 'online', 'membership', 'NewMembership', 'MembershipMeal'] },
     salesType: { type: String, enum: ['restaurant', 'online', 'membership'] },
     payments: {
       type: [
         new Schema(
           {
-            type: { type: String, enum: ['Cash', 'Card', 'Gateway'], trim: true },
+            type: { type: String, enum: ['Cash', 'Card', 'Gateway', 'Online Transfer', 'Payment Link'], trim: true },
+            methodType: { type: String, enum: ['direct', 'split'], default: 'direct', trim: true },
             amount: { type: Number, min: 0 },
           },
           { _id: false }
@@ -93,11 +109,48 @@ const OrderSchema: Schema = new Schema(
     dayCloseStart: { type: Date },
     dayCloseEnd: { type: Date },
     isDeleted: { type: Boolean, default: false },
+    paymentHistory: {
+      type: new Schema(
+        {
+          totalPaid: { type: Number, min: 0, default: 0 },
+          changeSequence: {
+            type: [{
+              from: [{ type: String, trim: true }],   // Previous modes
+              to: [{ type: String, trim: true }],     // New modes
+              timestamp: { type: Date, default: Date.now }
+            }],
+            default: []
+          },
+          entries: [
+            new Schema(
+              {
+                timestamp: { type: Date, default: Date.now },
+                action: { type: String, trim: true },
+                total: { type: Number, min: 0 },
+                paid: { type: Number, min: 0 },
+                remaining: { type: Number, min: 0 },
+                payments: [
+                  {
+                    type: { type: String, trim: true },
+                    methodType: { type: String, trim: true },
+                    amount: { type: Number, min: 0 }
+                  }
+                ],
+                description: { type: String, trim: true },
+              },
+              { _id: false }
+            ),
+          ],
+        },
+        { _id: false }
+      ),
+      default: { totalPaid: 0, entries: [] },
+    },
   },
   {
     timestamps: true,
     toJSON: {
-      transform: function (doc, ret) {
+      transform: function (doc: any, ret: any) {
         const r: any = ret as any;
         if (r.createdAt) {
           r.createdAt = new Date(r.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });

@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
 import { ZodError } from 'zod';
 import { Order } from './order.model';
-import { orderCreateValidation, orderUpdateValidation } from './order.validation';
+import { orderCreateValidation, orderUpdateValidation, simplePaymentModeChangeValidation } from './order.validation';
 import { Counter } from '../../services/counter.model';
 import { userInterface } from '../../middlewares/userInterface';
+import { updateOrderWithAutoTracking, createInitialHistoryEntry } from './paymentTracking.service';
 
 function dateStamp() {
   const d = new Date();
@@ -51,6 +52,11 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
     };
 
     const created = await Order.create(orderData);
+
+    // Add initial payment history entry for new orders
+    const initialPaymentHistory = createInitialHistoryEntry(created);
+    created.paymentHistory = initialPaymentHistory;
+    await created.save();
 
     // If middleware provided custom timestamps (for day close scenarios), update them
     // Access timestamps directly from req.body since validation strips them out
@@ -268,16 +274,20 @@ export const getOrderById = async (req: Request, res: Response): Promise<void> =
 export const updateOrderById = async (req: Request, res: Response): Promise<void> => {
   try {
     const payload = orderUpdateValidation.parse(req.body);
-    const item = await Order.findOneAndUpdate(
-      { _id: req.params.id, isDeleted: false },
-      payload.date ? { ...payload, date: new Date(payload.date as any) } : payload,
-      { new: true }
-    );
-    if (!item) {
+    const { id } = req.params;
+    
+    const updatedOrder = await updateOrderWithAutoTracking(id, payload);
+    
+    if (!updatedOrder) {
       res.status(404).json({ message: 'Order not found' });
       return;
     }
-    res.json({ message: 'Order updated', data: item });
+
+    res.json({ 
+      message: 'Order updated successfully', 
+      data: updatedOrder,
+      success: true
+    });
   } catch (err: any) {
     if (err instanceof ZodError) {
       res.status(400).json({ message: err.issues?.[0]?.message || 'Validation error' });
@@ -303,3 +313,223 @@ export const deleteOrderById = async (req: Request, res: Response): Promise<void
     res.status(500).json({ message: err?.message || 'Failed to delete order' });
   }
 };
+
+export const getPaidOrdersToday = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { branchId } = req.query as any;
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+    const filter: any = { 
+      isDeleted: false,
+      status: 'paid',
+      date: { $gte: startOfDay, $lte: endOfDay }
+    };
+
+    if (branchId) {
+      filter.branchId = String(branchId);
+    }
+
+    const orders = await Order.find(filter).sort({ createdAt: -1 });
+
+    // Calculate totals
+    const totalsAgg = await Order.aggregate([
+      { $match: filter },
+      { $group: { _id: null, total: { $sum: '$total' }, count: { $sum: 1 } } }
+    ]);
+    const summary = totalsAgg[0] || { total: 0, count: 0 };
+
+    res.json({ 
+      message: 'Paid orders for today retrieved successfully',
+      data: orders, 
+      summary,
+      date: today.toISOString().split('T')[0]
+    });
+  } catch (err: any) {
+    res.status(500).json({ message: err?.message || 'Failed to fetch paid orders for today' });
+  }
+};
+
+export const getUnpaidOrdersToday = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { branchId } = req.query as any;
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+    const filter: any = { 
+      isDeleted: false,
+      status: 'unpaid',
+      date: { $gte: startOfDay, $lte: endOfDay }
+    };
+
+    if (branchId) {
+      filter.branchId = String(branchId);
+    }
+
+    const orders = await Order.find(filter).sort({ createdAt: -1 });
+
+    // Calculate totals
+    const totalsAgg = await Order.aggregate([
+      { $match: filter },
+      { $group: { _id: null, total: { $sum: '$total' }, count: { $sum: 1 } } }
+    ]);
+    const summary = totalsAgg[0] || { total: 0, count: 0 };
+
+    res.json({ 
+      message: 'Unpaid orders for today retrieved successfully',
+      data: orders, 
+      summary,
+      date: today.toISOString().split('T')[0]
+    });
+  } catch (err: any) {
+    res.status(500).json({ message: err?.message || 'Failed to fetch unpaid orders for today' });
+  }
+};
+
+export const changePaymentModeSimple = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const payload = simplePaymentModeChangeValidation.parse(req.body);
+    
+    // Find the order
+    const order = await Order.findOne({ _id: id, isDeleted: false });
+    if (!order) {
+      res.status(404).json({ message: 'Order not found' });
+      return;
+    }
+
+    // Check if order is paid
+    if (order.status !== 'paid') {
+      res.status(400).json({ message: 'Only paid orders can have their payment mode changed' });
+      return;
+    }
+
+    // Check if order is from current date
+    const today = new Date();
+    const orderDate = new Date(order.date);
+    const isToday = orderDate.toDateString() === today.toDateString();
+    
+    if (!isToday) {
+      res.status(400).json({ message: 'Payment mode can only be changed for orders from current date' });
+      return;
+    }
+
+    // Get current payments
+    const currentPayments = order.payments || [];
+    if (currentPayments.length === 0) {
+      res.status(400).json({ message: 'No payments found for this order' });
+      return;
+    }
+
+    // Store previous payment details for history
+    const previousPaymentDetails = currentPayments.map(p => 
+      `${p.amount} ${p.type}${p.methodType ? ` (${p.methodType})` : ''}`
+    ).join(', ');
+
+    // Debug logging
+    console.log('=== PAYMENT MODE CHANGE DEBUG ===');
+    console.log('Current payments:', currentPayments);
+
+    // Add change sequence to existing history entries (no new entries created)
+    const existingEntries = order.paymentHistory?.entries || [];
+    
+    // Create new payments array with the same amounts and methodTypes but new payment mode
+    const newPayments = currentPayments.map(payment => ({
+      type: payload.paymentMode,
+      methodType: payment.methodType,
+      amount: payment.amount
+    }));
+    
+    // Extract previous and new payment modes for better tracking
+    const prevModes = [...new Set(currentPayments.map(p => p.type))]; // Get unique previous modes
+    const nowModes = [...new Set(newPayments.map(p => p.type))]; // Get unique new modes
+    
+    const currentChange = {
+      from: prevModes,
+      to: nowModes,
+      timestamp: new Date()
+    };
+    
+    console.log('Current change object:', currentChange);
+    console.log('Existing entries count:', existingEntries.length);
+    console.log('New payments:', newPayments);
+    console.log('Previous modes:', prevModes);
+    console.log('New modes:', nowModes);
+
+    // Collect ALL payment modes from ALL entries (both split and direct)
+    const allPaymentModesFromHistory = new Set<string>();
+    existingEntries.forEach(entry => {
+      if (entry.payments) {
+        entry.payments.forEach(payment => {
+          allPaymentModesFromHistory.add(payment.type);
+        });
+      }
+    });
+    
+    const uniquePaymentModesFromHistory = Array.from(allPaymentModesFromHistory);
+    
+    console.log('All unique payment modes from history:', uniquePaymentModesFromHistory);
+    console.log('New payment modes:', nowModes);
+    
+    // Check if there's any actual change
+    const hasActualChange = uniquePaymentModesFromHistory.some(historyMode => 
+      !nowModes.includes(historyMode as any)
+    );
+    
+    console.log('Has actual change:', hasActualChange);
+    
+    // Create ONE changeSequence entry for the overall change
+    const overallChange = {
+      from: uniquePaymentModesFromHistory,
+      to: nowModes,
+      timestamp: new Date()
+    };
+    
+    console.log('Overall change:', overallChange);
+    
+    // Keep entries as they are (no changeSequence in individual entries)
+    let updatedEntries = existingEntries;
+
+    // Update payment history with changeSequence at the top level
+    const existingChangeSequence = order.paymentHistory?.changeSequence || [];
+    const updatedPaymentHistory = {
+      totalPaid: newPayments.reduce((sum, p) => sum + p.amount, 0),
+      changeSequence: hasActualChange ? [...existingChangeSequence, overallChange] : existingChangeSequence,
+      entries: updatedEntries
+    };
+
+    // Update the order with new payment modes and updated history
+    const updatedOrder = await Order.findByIdAndUpdate(id, {
+      payments: newPayments,
+      paymentHistory: updatedPaymentHistory
+    }, { new: true });
+
+    if (!updatedOrder) {
+      res.status(500).json({ message: 'Failed to update payment mode' });
+      return;
+    }
+
+    // Debug: Check if the updated order has change sequences
+    console.log('Updated order payment history changeSequence:', updatedOrder.paymentHistory?.changeSequence);
+
+    // Use the updated order directly (no need to fetch again)
+    const finalOrder = updatedOrder;
+
+    res.json({
+      message: `Payment mode changed to ${payload.paymentMode} successfully`,
+      data: finalOrder,
+      success: true
+    });
+
+  } catch (err: any) {
+    if (err instanceof ZodError) {
+      res.status(400).json({ message: err.issues?.[0]?.message || 'Validation error' });
+      return;
+    }
+    res.status(500).json({ message: err?.message || 'Failed to change payment mode' });
+  }
+};
+
+

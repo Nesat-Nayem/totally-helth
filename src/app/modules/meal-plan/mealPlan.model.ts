@@ -26,6 +26,8 @@ const MealPlanSchema: Schema = new Schema(
     weeksOffers: [WeekOfferSchema],
     images: [{ type: String, trim: true }],
     thumbnail: { type: String, trim: true },
+    totalMeals: { type: Number, min: 0 },
+    durationDays: { type: Number, min: 0 },
     status: { type: String, enum: ['active', 'inactive'], default: 'active' },
     isDeleted: { type: Boolean, default: false },
   },

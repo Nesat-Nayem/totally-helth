@@ -23,6 +23,7 @@ import { dayCloseReportRouter } from "../modules/day-close-report/day-close-repo
 import { shiftRouter } from "../modules/shift/shift.routes";
 import { menuCategoryRouter } from "../modules/menu-category/menuCategory.routes";
 import { menuRouter } from "../modules/menu/menu.routes";
+import userMembershipRouter from "../modules/user-membership/userMembership.routes";
 
 const router = Router();
 const moduleRoutes = [
@@ -134,6 +135,10 @@ const moduleRoutes = [
   {
     path: "/shift",
     route: shiftRouter,
+  },
+  {
+    path: "/user-memberships",
+    route: userMembershipRouter,
   },
 ];
 

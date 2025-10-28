@@ -4,10 +4,10 @@ import { createBrand, deleteBrand, getBrandById, getBrands, updateBrand } from '
 
 const router = express.Router();
 
-router.get('/', getBrands);
-router.get('/:id', getBrandById);
-router.post('/', auth('admin'), createBrand);
-router.patch('/:id', auth('admin'), updateBrand);
-router.delete('/:id', auth('admin'), deleteBrand);
+router.get('/', auth(), getBrands);
+router.get('/:id', auth(), getBrandById);
+router.post('/', auth(), createBrand);
+router.patch('/:id', auth(), updateBrand);
+router.delete('/:id', auth(), deleteBrand);
 
 export const brandRouter = router;

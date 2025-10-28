@@ -3,6 +3,7 @@ import router from './app/routes';
 import notFound from './app/middlewares/notFound';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import { setupSwagger } from './app/config/swagger';
+import { globalAccessControl } from './app/middlewares/globalAccessControl';
 const app:Application = express();
 import cors from 'cors';
 
@@ -10,12 +11,14 @@ import cors from 'cors';
 app.use(express.json());
 app.use(cors())
 
-
 // swagger configuration
 setupSwagger(app);
 
+// Global access control - applies to all routes
+app.use(globalAccessControl());
+
 // application routes
-app.use('/v1/api',router)
+app.use('/v1/api', router)
 
 const entryRoute = (req:Request, res:Response)=>{
     const message = 'Surver is running...';

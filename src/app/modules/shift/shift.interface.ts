@@ -59,6 +59,11 @@ export interface IShiftSales {
     online: number;
     membership: number;
   };
+  /** Membership breakdown by order type */
+  membershipBreakdown: {
+    membershipMeal: number;
+    membershipRegister: number;
+  };
 }
 
 /**

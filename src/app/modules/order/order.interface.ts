@@ -5,7 +5,11 @@ export interface IOrderItem {
   title: string;
   price: number;
   qty: number;
+  moreOptions?: Array<{
+    name: string;
+  }>;
 }
+
 
 export interface IOrder extends Document {
   orderNo?: string;
@@ -28,15 +32,20 @@ export interface IOrder extends Document {
   rounding?: number;
   payableAmount?: number;
   receiveAmount?: number;
+  cumulativePaid?: number;
   changeAmount?: number;
   dueAmount?: number;
   note?: string;
   startDate?: string;
   endDate?: string;
   paymentMode?: string;
-  orderType?: 'DineIn' | 'TakeAway' | 'Delivery';
+  orderType?: 'DineIn' | 'TakeAway' | 'Delivery' | 'NewMembership' | 'MembershipMeal';
   salesType?: 'restaurant' | 'online' | 'membership';
-  payments?: Array<{ type: 'Cash' | 'Card' | 'Gateway'; amount: number }>;
+  payments?: Array<{ 
+    type: 'Cash' | 'Card' | 'Gateway' | 'Online Transfer' | 'Payment Link'; 
+    methodType: 'direct' | 'split';
+    amount: number; 
+  }>;
   membership?: {
     hold?: boolean;
     holdRanges?: Array<{ from: string; to?: string }>;
@@ -60,6 +69,23 @@ export interface IOrder extends Document {
   dayCloseStart?: Date | string;
   dayCloseEnd?: Date | string;
   isDeleted?: boolean;
+  paymentHistory?: {
+    totalPaid: number;
+    changeSequence?: Array<{ // Array to track multiple changes in sequence
+      from: string[];        // Previous modes
+      to: string[];          // New modes
+      timestamp: Date;       // When this specific change happened
+    }>;
+    entries: Array<{
+      timestamp: Date;
+      action: string;
+      total: number;
+      paid: number;
+      remaining: number;
+      payments: Array<{ type: string; methodType?: string; amount: number }>;
+      description: string;
+    }>;
+  };
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }

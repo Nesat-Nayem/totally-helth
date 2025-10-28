@@ -27,6 +27,8 @@ export const createMealPlan = async (req: Request, res: Response, next: NextFunc
       suitableList: body.suitableList ? ensureArray(body.suitableList) : undefined,
       daysPerWeek: body.daysPerWeek ? ensureArray(body.daysPerWeek) : undefined,
       weeksOffers: body.weeksOffers ? ensureWeekOffers(body.weeksOffers) : undefined,
+      totalMeals: body.totalMeals ? Number(body.totalMeals) : undefined,
+      durationDays: body.durationDays ? Number(body.durationDays) : undefined,
       images: images.length ? images : undefined,
       thumbnail: thumbnail,
       status: body.status === 'inactive' ? 'inactive' : 'active',
@@ -129,6 +131,8 @@ export const updateMealPlanById = async (req: Request, res: Response, next: Next
     if (body.daysPerWeek !== undefined) updateData.daysPerWeek = ensureArray(body.daysPerWeek);
     if (body.weeksOffers !== undefined) updateData.weeksOffers = ensureWeekOffers(body.weeksOffers);
     if (body.status !== undefined) updateData.status = body.status === 'inactive' ? 'inactive' : 'active';
+    if (body.totalMeals !== undefined) updateData.totalMeals = Number(body.totalMeals);
+    if (body.durationDays !== undefined) updateData.durationDays = Number(body.durationDays);
 
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
     const newImages = (files?.images || []).map((f) => f.path);
