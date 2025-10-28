@@ -5,7 +5,7 @@ const UserMembershipSchema: Schema = new Schema(
   {
     userId: { 
       type: Schema.Types.ObjectId, 
-      ref: 'User', 
+      ref: 'Customer', 
       required: true 
     },
     mealPlanId: { 
@@ -47,10 +47,44 @@ const UserMembershipSchema: Schema = new Schema(
       type: Boolean, 
       default: true 
     },
+    totalPrice: { 
+      type: Number, 
+      required: true, 
+      min: 0 
+    },
+    receivedAmount: { 
+      type: Number, 
+      default: 0, 
+      min: 0 
+    },
+    cumulativePaid: { 
+      type: Number, 
+      default: 0, 
+      min: 0 
+    },
+    payableAmount: { 
+      type: Number, 
+      required: true, 
+      min: 0 
+    },
+    paymentMode: { 
+      type: String, 
+      enum: ['cash', 'card', 'online', 'payment_link'], 
+      default: null 
+    },
+    paymentStatus: { 
+      type: String, 
+      enum: ['paid', 'unpaid', 'partial'], 
+      default: 'unpaid' 
+    },
+    note: { 
+      type: String, 
+      default: '' 
+    },
     history: [{
       action: {
         type: String,
-        enum: ['created', 'consumed', 'updated', 'completed'],
+        enum: ['created', 'consumed', 'updated', 'completed', 'payment_updated'],
         required: true
       },
       consumedMeals: { type: Number, default: 0 },
@@ -62,7 +96,16 @@ const UserMembershipSchema: Schema = new Schema(
         default: 'general'
       },
       timestamp: { type: Date, default: Date.now },
-      notes: { type: String }
+      notes: { type: String },
+      // Payment tracking fields
+      totalPrice: { type: Number },
+      receivedAmount: { type: Number },
+      cumulativePaid: { type: Number },
+      payableAmount: { type: Number },
+      paymentMode: { type: String },
+      paymentStatus: { type: String },
+      amountPaid: { type: Number }, // Amount paid in this specific transaction
+      amountChanged: { type: Number }
     }],
   },
   {
