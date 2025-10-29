@@ -1,5 +1,18 @@
 import { Document, Types } from 'mongoose';
 
+export interface IMealItem {
+  productId?: string;
+  title: string;
+  qty: number;
+  punchingTime: Date;
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks' | 'general';
+  moreOptions: Array<{
+    name: string;
+  }>;
+  branchId?: string;
+  createdBy?: string;
+}
+
 export interface IUserMembership extends Document {
   userId: Types.ObjectId; // Reference to Customer
   mealPlanId: Types.ObjectId; // Reference to MealPlan
@@ -11,29 +24,19 @@ export interface IUserMembership extends Document {
   status: 'active' | 'expired' | 'cancelled' | 'completed'; // Membership status
   isActive: boolean; // Quick status check
   totalPrice: number; // Total price of the membership
-  receivedAmount: number; // Amount received from customer (for frontend compatibility)
-  cumulativePaid: number; // Total amount paid by customer (cumulative)
-  payableAmount: number; // Remaining amount to be paid
+  receivedAmount: number; // Amount received from customer (always equals totalPrice)
   paymentMode?: 'cash' | 'card' | 'online' | 'payment_link'; // Payment method used
-  paymentStatus: 'paid' | 'unpaid' | 'partial'; // Payment status
+  paymentStatus: 'paid'; // Payment status
   note?: string; // Additional notes
+  mealItems: IMealItem[]; // Array of consumed meal items
   history: Array<{
-    action: 'created' | 'consumed' | 'updated' | 'completed' | 'payment_updated';
+    action: 'created' | 'consumed' | 'updated' | 'completed';
     consumedMeals: number;
     remainingMeals: number;
     mealsChanged: number;
     mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks' | 'general';
     timestamp: Date;
     notes?: string;
-    // Payment tracking fields
-    totalPrice?: number;
-    receivedAmount?: number;
-    cumulativePaid?: number;
-    payableAmount?: number;
-    paymentMode?: string;
-    paymentStatus?: string;
-    amountPaid?: number; // Amount paid in this specific transaction
-    amountChanged?: number;
   }>;
   createdAt: Date;
   updatedAt: Date;

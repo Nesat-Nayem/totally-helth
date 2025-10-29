@@ -62,21 +62,15 @@ import {
  *           description: Total price of the membership
  *         receivedAmount:
  *           type: number
- *           description: Amount received from customer (for frontend compatibility)
- *         cumulativePaid:
- *           type: number
- *           description: Total amount paid by customer (cumulative)
- *         payableAmount:
- *           type: number
- *           description: Remaining amount to be paid
+ *           description: Amount received from customer (always equals totalPrice)
  *         paymentMode:
  *           type: string
  *           enum: [cash, card, online, payment_link]
  *           description: Payment method used
  *         paymentStatus:
  *           type: string
- *           enum: [paid, unpaid, partial]
- *           description: Payment status
+ *           enum: [paid]
+ *           description: Payment status (always paid for memberships)
  *         note:
  *           type: string
  *           description: Additional notes
@@ -101,12 +95,13 @@ export class UserMembershipController {
    *         application/json:
    *           schema:
    *             type: object
- *             required:
- *               - userId
- *               - mealPlanId
- *               - totalMeals
- *               - totalPrice
- *               - endDate
+   *             required:
+   *               - userId
+   *               - mealPlanId
+   *               - totalMeals
+   *               - totalPrice
+   *               - receivedAmount
+   *               - endDate
  *             properties:
  *               userId:
  *                 type: string
@@ -118,17 +113,17 @@ export class UserMembershipController {
  *               totalPrice:
  *                 type: number
  *                 description: Total price of the membership
- *               receivedAmount:
- *                 type: number
- *                 description: Initial payment amount (optional)
+   *               receivedAmount:
+   *                 type: number
+   *                 description: Payment amount received (required). Must equal totalPrice for membership creation
  *               paymentMode:
  *                 type: string
  *                 enum: [cash, card, online, payment_link]
  *                 description: Payment method used (optional)
- *               paymentStatus:
- *                 type: string
- *                 enum: [paid, unpaid, partial]
- *                 description: Payment status (optional)
+   *               paymentStatus:
+   *                 type: string
+   *                 enum: [paid]
+   *                 description: Payment status (optional). Always 'paid' for memberships
  *               note:
  *                 type: string
  *                 description: Additional notes (optional)
@@ -155,7 +150,7 @@ export class UserMembershipController {
   static async createUserMembership(req: Request, res: Response, next: NextFunction) {
     try {
       const validated = createUserMembershipSchema.parse({ body: req.body });
-      const { userId, mealPlanId, totalMeals, totalPrice, receivedAmount: initialPayment = 0, paymentMode, paymentStatus, note, startDate, endDate } = validated.body;
+      const { userId, mealPlanId, totalMeals, totalPrice, receivedAmount, paymentMode, paymentStatus, note, startDate, endDate } = validated.body;
 
       // Verify customer exists
       const customer = await Customer.findById(userId);
@@ -169,22 +164,13 @@ export class UserMembershipController {
         throw new appError('Meal plan not found', 404);
       }
 
-       // Calculate payable amount (remaining amount to be paid)
-       const receivedAmount = initialPayment;
-       const cumulativePaid = initialPayment;
-       const payableAmount = totalPrice - cumulativePaid;
-       
-       // Determine payment status
-       let finalPaymentStatus = paymentStatus;
-       if (!finalPaymentStatus) {
-         if (cumulativePaid >= totalPrice) {
-           finalPaymentStatus = 'paid';
-         } else if (cumulativePaid > 0) {
-           finalPaymentStatus = 'partial';
-         } else {
-           finalPaymentStatus = 'unpaid';
-         }
-       }
+      // Validate that full payment is made
+      if (receivedAmount !== totalPrice) {
+        throw new appError('Membership can only be created with full payment. Received amount must equal total price.', 400);
+      }
+
+      // Payment status is always 'paid' for memberships
+      const finalPaymentStatus = 'paid';
 
        const membership = new UserMembership({
          userId,
@@ -194,8 +180,6 @@ export class UserMembershipController {
          consumedMeals: 0,
          totalPrice,
          receivedAmount,
-         cumulativePaid,
-         payableAmount,
          paymentMode: paymentMode || null,
          paymentStatus: finalPaymentStatus,
          note: note || '',
@@ -210,16 +194,7 @@ export class UserMembershipController {
            mealsChanged: 0,
            mealType: 'general',
            timestamp: new Date(),
-           notes: 'Membership created',
-           // Payment tracking
-           totalPrice,
-           receivedAmount,
-           cumulativePaid,
-           payableAmount,
-           paymentMode: paymentMode || null,
-           paymentStatus: finalPaymentStatus,
-           amountPaid: initialPayment,
-           amountChanged: initialPayment
+           notes: 'Membership created'
          }]
        });
 
@@ -429,51 +404,73 @@ export class UserMembershipController {
         throw new appError('User membership not found', 404);
       }
 
-      // Track if payment fields are being updated
-      const paymentFieldsUpdated = updateData.receivedAmount !== undefined || 
-                                   updateData.paymentMode !== undefined || 
-                                   updateData.paymentStatus !== undefined || 
-                                   updateData.note !== undefined;
+      // Handle meal items if provided
+      if (updateData.mealItems !== undefined) {
+        // Check if membership is active
+        if (currentMembership.status !== 'active' || !currentMembership.isActive) {
+          throw new appError('Cannot add meals to inactive membership', 400);
+        }
 
-      // If receivedAmount is being updated, treat it as additional payment
-      if (updateData.receivedAmount !== undefined) {
-        const additionalPayment = updateData.receivedAmount;
-        
-        // Validate additional payment
-        if (additionalPayment < 0) {
-          throw new appError('Additional payment amount cannot be negative', 400);
+        // Calculate total quantity of new meal items
+        const totalNewMeals = updateData.mealItems.reduce((sum: number, item: any) => sum + item.qty, 0);
+
+        // Check if adding these meals would exceed remaining meals
+        if (currentMembership.remainingMeals < totalNewMeals) {
+          throw new appError(`Cannot consume ${totalNewMeals} meals. Only ${currentMembership.remainingMeals} meals remaining`, 400);
         }
+
+        // Process meal items and add punching time if not provided
+        const processedMealItems = updateData.mealItems.map((item: any) => ({
+          productId: item.productId,
+          title: item.title,
+          qty: item.qty,
+          punchingTime: item.punchingTime ? new Date(item.punchingTime) : new Date(),
+          mealType: item.mealType || 'general',
+          moreOptions: item.moreOptions || [],
+          branchId: item.branchId,
+          createdBy: item.createdBy,
+        }));
+
+        // Add meal items to existing meal items array
+        updateData.mealItems = [...(currentMembership.mealItems || []), ...processedMealItems];
         
-        // Calculate new cumulative paid amount
-        const newCumulativePaid = currentMembership.cumulativePaid + additionalPayment;
+        // Update consumed and remaining meals based on meal items
+        const newConsumedMeals = (currentMembership.consumedMeals || 0) + totalNewMeals;
+        const newRemainingMeals = currentMembership.remainingMeals - totalNewMeals;
         
-        // Ensure cumulative paid doesn't exceed total price
-        if (newCumulativePaid > currentMembership.totalPrice) {
-          throw new appError(`Total payments (${newCumulativePaid}) cannot exceed total price (${currentMembership.totalPrice})`, 400);
-        }
+        // Set the calculated values
+        updateData.consumedMeals = newConsumedMeals;
+        updateData.remainingMeals = newRemainingMeals;
         
-        // Update both receivedAmount and cumulativePaid
-        updateData.receivedAmount = additionalPayment; // This is the additional payment received
-        updateData.cumulativePaid = newCumulativePaid; // This is the total cumulative amount
-        updateData.payableAmount = currentMembership.totalPrice - newCumulativePaid;
+        // Add history entry for meal consumption
+        const historyEntry = {
+          action: 'consumed' as const,
+          consumedMeals: newConsumedMeals,
+          remainingMeals: newRemainingMeals,
+          mealsChanged: totalNewMeals,
+          mealType: 'general' as const,
+          timestamp: new Date(),
+          notes: `Consumed ${totalNewMeals} meal(s): ${currentMembership.consumedMeals} → ${newConsumedMeals} consumed, ${currentMembership.remainingMeals} → ${newRemainingMeals} remaining`
+        };
         
-        // Auto-update payment status based on cumulative paid amount
-        if (updateData.paymentStatus === undefined) {
-          if (newCumulativePaid >= currentMembership.totalPrice) {
-            updateData.paymentStatus = 'paid';
-          } else if (newCumulativePaid > 0) {
-            updateData.paymentStatus = 'partial';
-          } else {
-            updateData.paymentStatus = 'unpaid';
-          }
-        }
-        
-        // Store the additional payment amount for history tracking
-        updateData.additionalPayment = additionalPayment;
+        // Add to history
+        updateData.history = [...(currentMembership.history || []), historyEntry];
       }
 
-       // Simple incremental calculation with history tracking
-       if (updateData.consumedMeals !== undefined || updateData.remainingMeals !== undefined) {
+      // Track if payment fields are being updated
+      // If receivedAmount is being updated, validate it equals totalPrice
+      if (updateData.receivedAmount !== undefined) {
+        // Validate that receivedAmount equals totalPrice (full payment only)
+        if (updateData.receivedAmount !== currentMembership.totalPrice) {
+          throw new appError('Received amount must equal total price for membership updates', 400);
+        }
+        
+        // Payment status is always 'paid' for memberships
+        updateData.paymentStatus = 'paid';
+      }
+
+       // Simple incremental calculation with history tracking (only when mealItems are not provided)
+       if (updateData.mealItems === undefined && (updateData.consumedMeals !== undefined || updateData.remainingMeals !== undefined)) {
          const currentConsumed = currentMembership.consumedMeals;
          const currentRemaining = currentMembership.remainingMeals;
          let newConsumed = currentConsumed;
@@ -559,64 +556,7 @@ export class UserMembershipController {
        ).populate('userId', 'name email phone address status')
         .populate('mealPlanId', 'title description price totalMeals durationDays');
 
-       // Add history entry if meals were updated
-       if (updateData.consumedMeals !== undefined || updateData.remainingMeals !== undefined) {
-         const currentConsumed = currentMembership.consumedMeals;
-         const currentRemaining = currentMembership.remainingMeals;
-         const newConsumed = updateData.consumedMeals || currentConsumed;
-         const newRemaining = updateData.remainingMeals || currentRemaining;
-         const mealsChanged = newConsumed - currentConsumed;
-         
-         const historyEntry = {
-           action: 'consumed' as const,
-           consumedMeals: newConsumed,
-           remainingMeals: newRemaining,
-           mealsChanged,
-           mealType: 'general' as const,
-           timestamp: new Date(),
-           notes: `Consumed ${mealsChanged} meals: ${currentConsumed} → ${newConsumed} consumed, ${currentRemaining} → ${newRemaining} remaining`
-         };
-         
-         await UserMembership.findByIdAndUpdate(
-           id,
-           { $push: { history: historyEntry } }
-         );
-       }
 
-       // Add payment history entry if payment fields were updated
-       if (paymentFieldsUpdated) {
-         const currentCumulativePaid = currentMembership.cumulativePaid;
-         const newCumulativePaid = updateData.cumulativePaid || currentCumulativePaid;
-         const additionalPayment = updateData.additionalPayment || 0;
-         const newReceivedAmount = updateData.receivedAmount || currentMembership.receivedAmount;
-         const newPayableAmount = updateData.payableAmount || (currentMembership.totalPrice - newCumulativePaid);
-         const newPaymentStatus = updateData.paymentStatus || currentMembership.paymentStatus;
-         const newPaymentMode = updateData.paymentMode || currentMembership.paymentMode;
-         
-         const paymentHistoryEntry = {
-           action: 'payment_updated' as const,
-           consumedMeals: currentMembership.consumedMeals,
-           remainingMeals: currentMembership.remainingMeals,
-           mealsChanged: 0,
-           mealType: 'general' as const,
-           timestamp: new Date(),
-           notes: `Payment updated: ${currentCumulativePaid} → ${newCumulativePaid} cumulative paid, ${currentMembership.payableAmount} → ${newPayableAmount} payable`,
-           // Payment tracking
-           totalPrice: currentMembership.totalPrice,
-           receivedAmount: newReceivedAmount,
-           cumulativePaid: newCumulativePaid,
-           payableAmount: newPayableAmount,
-           paymentMode: newPaymentMode,
-           paymentStatus: newPaymentStatus,
-           amountPaid: additionalPayment,
-           amountChanged: additionalPayment
-         };
-         
-         await UserMembership.findByIdAndUpdate(
-           id,
-           { $push: { history: paymentHistoryEntry } }
-         );
-       }
 
       res.status(200).json({
         success: true,
@@ -629,96 +569,6 @@ export class UserMembershipController {
     }
   }
 
-  /**
-   * @swagger
-   * /api/v1/user-memberships/{id}/consume:
-   *   post:
-   *     summary: Add meals to consumption (incremental)
-   *     tags: [User Memberships]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: User membership ID
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - mealsToConsume
-   *             properties:
-   *               mealsToConsume:
-   *                 type: number
-   *                 minimum: 1
-   *                 description: Number of meals to add to consumption
-   *     responses:
-   *       200:
-   *         description: Meals consumed successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Success'
-   *       400:
-   *         description: Bad request
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
-   */
-  static async consumeMeals(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      const { mealsToConsume } = req.body;
-
-      if (!mealsToConsume || mealsToConsume <= 0) {
-        throw new appError('Invalid number of meals to consume', 400);
-      }
-
-      const membership = await UserMembership.findById(id);
-      if (!membership) {
-        throw new appError('User membership not found', 404);
-      }
-
-      if (membership.remainingMeals < mealsToConsume) {
-        throw new appError(`Not enough remaining meals. Available: ${membership.remainingMeals}, Requested: ${mealsToConsume}`, 400);
-      }
-
-      // Update membership: decrease remaining meals and increase consumed meals
-      const updatedMembership = await UserMembership.findByIdAndUpdate(
-        id,
-        {
-          $inc: {
-            remainingMeals: -mealsToConsume,
-            consumedMeals: mealsToConsume
-          }
-        },
-        { new: true }
-      ).populate('userId', 'name email phone address status')
-       .populate('mealPlanId', 'title description price totalMeals durationDays');
-
-      // Check if membership is completed
-      if (updatedMembership && updatedMembership.remainingMeals <= 0) {
-        await UserMembership.findByIdAndUpdate(id, {
-          status: 'completed',
-          isActive: false,
-          remainingMeals: 0
-        });
-      }
-
-      res.status(200).json({
-        success: true,
-        statusCode: 200,
-        message: `${mealsToConsume} meals consumed successfully`,
-        data: updatedMembership,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
 
   /**
    * @swagger

@@ -5,13 +5,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mealPlanRouter = void 0;
 const express_1 = __importDefault(require("express"));
-const authMiddleware_1 = require("../../middlewares/authMiddleware");
 const cloudinary_1 = require("../../config/cloudinary");
 const mealPlan_controller_1 = require("./mealPlan.controller");
 const router = express_1.default.Router();
 /**
  * @swagger
- * /meal-plans:
+ * /v1/api/meal-plans:
  *   post:
  *     summary: Create a meal plan
  *     tags:
@@ -68,13 +67,13 @@ const router = express_1.default.Router();
  *       201:
  *         description: Meal plan created
  */
-router.post('/', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fields([
+router.post('/', cloudinary_1.upload.fields([
     { name: 'images', maxCount: 10 },
     { name: 'thumbnail', maxCount: 1 },
 ]), mealPlan_controller_1.createMealPlan);
 /**
  * @swagger
- * /meal-plans:
+ * /v1/api/meal-plans:
  *   get:
  *     summary: Get all meal plans
  *     tags:
@@ -117,7 +116,7 @@ router.post('/', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fields
 router.get('/', mealPlan_controller_1.getAllMealPlans);
 /**
  * @swagger
- * /meal-plans/{id}:
+ * /v1/api/meal-plans/{id}:
  *   get:
  *     summary: Get meal plan by ID
  *     tags:
@@ -137,7 +136,7 @@ router.get('/', mealPlan_controller_1.getAllMealPlans);
 router.get('/:id', mealPlan_controller_1.getMealPlanById);
 /**
  * @swagger
- * /meal-plans/{id}:
+ * /v1/api/meal-plans/{id}:
  *   put:
  *     summary: Update a meal plan
  *     tags:
@@ -182,13 +181,13 @@ router.get('/:id', mealPlan_controller_1.getMealPlanById);
  *       404:
  *         description: Not found
  */
-router.put('/:id', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fields([
+router.put('/:id', cloudinary_1.upload.fields([
     { name: 'images', maxCount: 10 },
     { name: 'thumbnail', maxCount: 1 },
 ]), mealPlan_controller_1.updateMealPlanById);
 /**
  * @swagger
- * /meal-plans/{id}:
+ * /v1/api/meal-plans/{id}:
  *   delete:
  *     summary: Delete (soft) a meal plan
  *     tags:
@@ -207,5 +206,5 @@ router.put('/:id', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fiel
  *       404:
  *         description: Not found
  */
-router.delete('/:id', (0, authMiddleware_1.auth)('admin'), mealPlan_controller_1.deleteMealPlanById);
+router.delete('/:id', mealPlan_controller_1.deleteMealPlanById);
 exports.mealPlanRouter = router;

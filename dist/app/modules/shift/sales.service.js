@@ -68,6 +68,10 @@ const calculateSales = (startTime, endTime, branchId) => __awaiter(void 0, void 
                 online: 0,
                 membership: 0,
             },
+            membershipBreakdown: {
+                membershipMeal: 0,
+                membershipRegister: 0,
+            },
         };
         // Process each order
         orders.forEach(order => {
@@ -112,6 +116,13 @@ const calculateSales = (startTime, endTime, branchId) => __awaiter(void 0, void 
             }
             else if (order.salesType === 'membership') {
                 sales.salesByType.membership += orderTotal;
+                // Further categorize membership orders by orderType
+                if (order.orderType === 'MembershipMeal') {
+                    sales.membershipBreakdown.membershipMeal += orderTotal;
+                }
+                else if (order.orderType === 'NewMembership') {
+                    sales.membershipBreakdown.membershipRegister += orderTotal;
+                }
             }
             else {
                 // Fallback to restaurant for unknown sales types
@@ -129,6 +140,7 @@ const calculateSales = (startTime, endTime, branchId) => __awaiter(void 0, void 
             totalVat: 0,
             payments: { cash: 0, card: 0, online: 0 },
             salesByType: { restaurant: 0, online: 0, membership: 0 },
+            membershipBreakdown: { membershipMeal: 0, membershipRegister: 0 },
         };
     }
 });

@@ -71,6 +71,10 @@ const salesDefault = () => ({
         online: 0,
         membership: 0,
     },
+    membershipBreakdown: {
+        membershipMeal: 0,
+        membershipRegister: 0,
+    },
 });
 /**
  * Schema for cash denominations

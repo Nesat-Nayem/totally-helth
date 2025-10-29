@@ -1,5 +1,34 @@
 import mongoose, { Schema } from 'mongoose';
-import { IUserMembership } from './userMembership.interface';
+import { IUserMembership, IMealItem } from './userMembership.interface';
+
+// Meal Item Schema for tracking consumed meals
+const MealItemSchema = new Schema<IMealItem>(
+  {
+    productId: { type: String, trim: true },
+    title: { type: String, required: true, trim: true },
+    qty: { type: Number, required: true, min: 1 },
+    punchingTime: { type: Date, required: true, default: Date.now },
+    mealType: {
+      type: String,
+      enum: ['breakfast', 'lunch', 'dinner', 'snacks', 'general'],
+      default: 'general'
+    },
+    moreOptions: {
+      type: [
+        new Schema(
+          {
+            name: { type: String, required: true, trim: true },
+          },
+          { _id: false }
+        ),
+      ],
+      default: [],
+    },
+    branchId: { type: String, trim: true },
+    createdBy: { type: String, trim: true }, // Staff who processed the meal consumption
+  },
+  { _id: false }
+);
 
 const UserMembershipSchema: Schema = new Schema(
   {
@@ -54,16 +83,6 @@ const UserMembershipSchema: Schema = new Schema(
     },
     receivedAmount: { 
       type: Number, 
-      default: 0, 
-      min: 0 
-    },
-    cumulativePaid: { 
-      type: Number, 
-      default: 0, 
-      min: 0 
-    },
-    payableAmount: { 
-      type: Number, 
       required: true, 
       min: 0 
     },
@@ -74,12 +93,16 @@ const UserMembershipSchema: Schema = new Schema(
     },
     paymentStatus: { 
       type: String, 
-      enum: ['paid', 'unpaid', 'partial'], 
-      default: 'unpaid' 
+      enum: ['paid'], 
+      default: 'paid' 
     },
     note: { 
       type: String, 
       default: '' 
+    },
+    mealItems: { 
+      type: [MealItemSchema], 
+      default: [] 
     },
     history: [{
       action: {
@@ -97,15 +120,7 @@ const UserMembershipSchema: Schema = new Schema(
       },
       timestamp: { type: Date, default: Date.now },
       notes: { type: String },
-      // Payment tracking fields
-      totalPrice: { type: Number },
-      receivedAmount: { type: Number },
-      cumulativePaid: { type: Number },
-      payableAmount: { type: Number },
-      paymentMode: { type: String },
-      paymentStatus: { type: String },
-      amountPaid: { type: Number }, // Amount paid in this specific transaction
-      amountChanged: { type: Number }
+      mealItems: { type: [MealItemSchema], default: [] } // Store meal items for each history entry
     }],
   },
   {

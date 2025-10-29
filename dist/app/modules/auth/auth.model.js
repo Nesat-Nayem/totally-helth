@@ -85,7 +85,15 @@ const userSchema = new mongoose_1.Schema({
     phone: { type: String, required: true },
     email: { type: String },
     img: { type: String },
-    role: { type: String, enum: ['admin', 'vendor', 'user'], default: 'user' },
+    role: {
+        type: String,
+        enum: ['admin', 'vendor', 'user', 'super admin', 'manager', 'supervisor', 'cashier', 'waiter', 'staff'],
+        default: 'user'
+    },
+    menuAccess: {
+        type: mongoose_1.Schema.Types.Mixed,
+        default: {}
+    },
     status: { type: String, enum: ['pending', 'active'], default: 'active' },
     otp: { type: String },
     otpExpires: { type: Date },
