@@ -100,3 +100,58 @@ export const setMembershipStatusSchema = z.object({
     status: z.enum(['hold', 'active', 'cancelled']),
   }),
 });
+
+// Meal items with quantities for punch API
+const mealItemWithQtySchema = z.object({
+  mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snacks']),
+  mealItemTitle: z.string().min(1, 'Meal item title is required'),
+  qty: z.number().int().min(1, 'Quantity must be at least 1').default(1),
+});
+
+export const punchMealsSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'Membership ID is required'),
+  }),
+  body: z.object({
+    // Either provide date OR week+day, or omit both to use today's date
+    date: z.string().optional(), // ISO date string (YYYY-MM-DD), defaults to today if not provided
+    week: z.number().int().min(1, 'Week number must be at least 1').optional(),
+    day: dayOfWeekEnum.optional(),
+    // Support both: simple meal types OR detailed meal items with quantities
+    consumedMealTypes: z.array(z.enum(['breakfast', 'lunch', 'dinner', 'snacks']))
+      .min(1, 'At least one meal type must be consumed').optional(),
+    mealItems: z.array(mealItemWithQtySchema).optional(), // Detailed meal items with quantities
+    notes: z.string().optional(),
+  }).refine(
+    (data) => {
+      // Must provide either consumedMealTypes OR mealItems
+      const hasMealTypes = data.consumedMealTypes && data.consumedMealTypes.length > 0;
+      const hasMealItems = data.mealItems && data.mealItems.length > 0;
+      return hasMealTypes || hasMealItems;
+    },
+    {
+      message: 'Either provide consumedMealTypes or mealItems',
+      path: ['consumedMealTypes'],
+    }
+  ).refine(
+    (data) => {
+      // Either date is provided, OR both week and day are provided, OR neither (will default to today)
+      const hasDate = data.date !== undefined;
+      const hasWeekAndDay = data.week !== undefined && data.day !== undefined;
+      const hasOnlyWeek = data.week !== undefined && data.day === undefined;
+      const hasOnlyDay = data.day !== undefined && data.week === undefined;
+      
+      // Invalid: only week or only day
+      if (hasOnlyWeek || hasOnlyDay) {
+        return false;
+      }
+      
+      // Valid: date provided, OR week+day provided, OR neither
+      return hasDate || hasWeekAndDay || (!hasDate && !hasWeekAndDay);
+    },
+    {
+      message: 'Either provide date, or both week and day together, or omit both to use today',
+      path: ['date'],
+    }
+  ),
+});

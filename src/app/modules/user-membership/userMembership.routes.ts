@@ -186,6 +186,9 @@ router.put('/:id', UserMembershipController.updateUserMembership);
 // Set membership status (active/hold/cancelled)
 router.patch('/:id/status', UserMembershipController.setMembershipStatus);
 
+// Punch meals for a specific week and day
+router.post('/:id/punch', UserMembershipController.punchMeals);
+
 // Delete user membership
 router.delete('/:id', UserMembershipController.deleteUserMembership);
 

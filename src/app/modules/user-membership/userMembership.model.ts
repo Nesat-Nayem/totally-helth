@@ -4,14 +4,14 @@ import { IUserMembership, IMealItem, IWeekMealPlan, IWeekDayPlan, MealTypeMeals 
 // Meal Item Schema for tracking consumed meals
 const MealItemSchema = new Schema<IMealItem>(
   {
-    productId: { type: String, trim: true },
+ 
     title: { type: String, required: true, trim: true },
     qty: { type: Number, required: true, min: 1 },
     punchingTime: { type: Date, required: true, default: Date.now },
     mealType: {
       type: String,
-      enum: ['breakfast', 'lunch', 'dinner', 'snacks', 'general'],
-      default: 'general'
+      enum: ['breakfast', 'lunch', 'dinner', 'snacks'],
+      
     },
     moreOptions: {
       type: [
@@ -73,6 +73,17 @@ const MealTypeSchema = new Schema<MealTypeMeals>(
   { _id: false }
 );
 
+// Schema for tracking consumed meals per day
+const ConsumedMealsSchema = new Schema(
+  {
+    breakfast: { type: Boolean, default: false },
+    lunch: { type: Boolean, default: false },
+    dinner: { type: Boolean, default: false },
+    snacks: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
+
 const WeekDayPlanSchema = new Schema<IWeekDayPlan>(
   {
     day: {
@@ -83,6 +94,8 @@ const WeekDayPlanSchema = new Schema<IWeekDayPlan>(
       trim: true,
     },
     meals: { type: MealTypeSchema, required: true },
+    consumedMeals: { type: ConsumedMealsSchema, required: false },
+    isConsumed: { type: Boolean, default: false }, // Simple flag in model
   },
   { _id: false }
 );
@@ -94,6 +107,7 @@ const WeekMealPlanSchema = new Schema<IWeekMealPlan>(
     days: { type: [WeekDayPlanSchema], required: true },
     // If provided, reuse meals from the referenced week number
     repeatFromWeek: { type: Number, min: 1 },
+    isConsumed: { type: Boolean, default: false }, // Simple flag in model
   },
   { _id: false }
 );
@@ -164,27 +178,30 @@ const UserMembershipSchema: Schema = new Schema(
       type: String, 
       default: '' 
     },
-    mealItems: { 
-      type: [MealItemSchema], 
-      default: [] 
-    },
     history: [{
       action: {
         type: String,
         enum: ['created', 'consumed', 'updated', 'completed', 'payment_updated'],
         required: true
       },
-      consumedMeals: { type: Number, default: 0 },
-      remainingMeals: { type: Number, default: 0 },
-      mealsChanged: { type: Number, default: 0 },
-      mealType: {
-        type: String,
-        enum: ['breakfast', 'lunch', 'dinner', 'snacks', 'general'],
-        default: 'general'
-      },
+      consumedMeals: { type: Number, default: 0 }, // Total consumed meals after this action
+      remainingMeals: { type: Number, default: 0 }, // Remaining meals after this action
+      currentConsumed: { type: Number, default: 0 }, // Meals consumed in THIS punch/action
       timestamp: { type: Date, default: Date.now },
-      notes: { type: String },
-      mealItems: { type: [MealItemSchema], default: [] } // Store meal items for each history entry
+      notes: { type: String }, // Notes for this history entry
+      mealItems: { type: [MealItemSchema], default: [] }, // Store meal items for each history entry
+      // Week/day tracking for punch API
+      week: { type: Number, min: 1 },
+      day: {
+        type: String,
+        enum: ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+        lowercase: true,
+        trim: true,
+      },
+      consumedMealTypes: [{
+        type: String,
+        enum: ['breakfast', 'lunch', 'dinner', 'snacks'],
+      }],
     }],
     // Optional weeks field for structured meal plans
     weeks: [WeekMealPlanSchema],

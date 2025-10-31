@@ -33,6 +33,14 @@ export type DayOfWeek =
 export interface IWeekDayPlan {
   day: DayOfWeek; // specific day override
   meals: MealTypeMeals; // same 3-items-per-type rule
+  consumedMeals?: {
+    // Track which meal types were consumed for this day
+    breakfast?: boolean;
+    lunch?: boolean;
+    dinner?: boolean;
+    snacks?: boolean;
+  };
+  isConsumed?: boolean; // Simple flag: true if all 4 meals consumed, false by default
 }
 
 export interface IWeekMealPlan {
@@ -41,6 +49,7 @@ export interface IWeekMealPlan {
   days: IWeekDayPlan[];
   // If provided, reuse meals from the referenced week number instead of days
   repeatFromWeek?: number;
+  isConsumed?: boolean; // Simple flag: true if all days in week consumed, false by default
 }
 
 export interface IUserMembership extends Document {
@@ -57,15 +66,18 @@ export interface IUserMembership extends Document {
   paymentMode?: 'cash' | 'card' | 'online' | 'payment_link'; // Payment method used
   paymentStatus: 'paid'; // Payment status
   note?: string; // Additional notes
-  mealItems: IMealItem[]; // Array of consumed meal items
   history: Array<{
     action: 'created' | 'consumed' | 'updated' | 'completed';
-    consumedMeals: number;
-    remainingMeals: number;
-    mealsChanged: number;
-    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks' | 'general';
+    consumedMeals: number; // Total consumed meals after this action
+    remainingMeals: number; // Remaining meals after this action
+    currentConsumed: number; // Meals consumed in THIS punch/action
     timestamp: Date;
-    notes?: string;
+    notes?: string; // Notes for this history entry
+    // Week/day tracking for punch API
+    week?: number;
+    day?: DayOfWeek;
+    consumedMealTypes?: ('breakfast' | 'lunch' | 'dinner' | 'snacks')[];
+    mealItems?: IMealItem[]; // Meal items for this specific history entry
   }>;
   // Optional weeks field for structured meal plans
   weeks?: IWeekMealPlan[];
