@@ -1,5 +1,28 @@
 import { z } from 'zod';
 
+// Week meal plan validation schemas (same as meal plan)
+const mealTypeSchema = z.object({
+  breakfast: z.array(z.string().min(1)).max(3).optional(),
+  lunch: z.array(z.string().min(1)).max(3).optional(),
+  snacks: z.array(z.string().min(1)).max(3).optional(),
+  dinner: z.array(z.string().min(1)).max(3).optional(),
+});
+
+const dayOfWeekEnum = z.enum(['saturday','sunday','monday','tuesday','wednesday','thursday','friday']);
+
+const weekDayPlanSchema = z.object({
+  day: dayOfWeekEnum,
+  meals: mealTypeSchema,
+});
+
+const weekMealPlanSchema = z.object({
+  week: z.number().int().min(1),
+  // Provide exactly 7 day entries when specifying meals for this week
+  days: z.array(weekDayPlanSchema).length(7).optional(),
+  // If provided, reuse a previous week's meals; when used, you can omit 'days'
+  repeatFromWeek: z.number().int().min(1).optional(),
+});
+
 // Meal Item validation schema
 export const mealItemSchema = z.object({
   productId: z.string().optional(),
@@ -27,6 +50,7 @@ export const createUserMembershipSchema = z.object({
     note: z.string().optional(),
     startDate: z.string().optional(),
     endDate: z.string().min(1, 'End date is required'),
+    weeks: z.array(weekMealPlanSchema).optional(),
   }),
 });
 
@@ -41,9 +65,9 @@ export const updateUserMembershipSchema = z.object({
     paymentMode: z.enum(['cash', 'card', 'online', 'payment_link']).optional(),
     paymentStatus: z.enum(['paid']).optional(),
     note: z.string().optional(),
-    status: z.enum(['active', 'expired', 'cancelled', 'completed']).optional(),
-    isActive: z.boolean().optional(),
+    status: z.enum(['active', 'hold', 'cancelled', 'completed']).optional(),
     mealItems: z.array(mealItemSchema).optional(), // Optional meal items when updating membership
+    weeks: z.array(weekMealPlanSchema).optional(),
   }),
 });
 
@@ -56,7 +80,7 @@ export const getUserMembershipSchema = z.object({
 export const getUserMembershipsSchema = z.object({
   query: z.object({
     userId: z.string().optional(),
-    status: z.enum(['active', 'expired', 'cancelled', 'completed']).optional(),
+    status: z.enum(['active', 'hold', 'cancelled', 'completed']).optional(),
     page: z.string().optional(),
     limit: z.string().optional(),
   }),
@@ -65,5 +89,14 @@ export const getUserMembershipsSchema = z.object({
 export const deleteUserMembershipSchema = z.object({
   params: z.object({
     id: z.string().min(1, 'Membership ID is required'),
+  }),
+});
+
+export const setMembershipStatusSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'Membership ID is required'),
+  }),
+  body: z.object({
+    status: z.enum(['hold', 'active', 'cancelled']),
   }),
 });

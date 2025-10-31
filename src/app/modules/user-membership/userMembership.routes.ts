@@ -61,7 +61,7 @@ const router = Router();
  *         name: status
  *         schema:
  *           type: string
- *           enum: [active, expired, cancelled, completed]
+ *           enum: [active, hold, cancelled, completed]
  *         description: Filter by status
  *       - in: query
  *         name: page
@@ -130,9 +130,7 @@ const router = Router();
  *                 type: number
  *               status:
  *                 type: string
- *                 enum: [active, expired, cancelled, completed]
- *               isActive:
- *                 type: boolean
+ *                 enum: [active, hold, cancelled, completed]
  *     responses:
  *       200:
  *         description: User membership updated successfully
@@ -184,6 +182,9 @@ router.get('/:id', UserMembershipController.getUserMembership);
 
 // Update user membership
 router.put('/:id', UserMembershipController.updateUserMembership);
+
+// Set membership status (active/hold/cancelled)
+router.patch('/:id/status', UserMembershipController.setMembershipStatus);
 
 // Delete user membership
 router.delete('/:id', UserMembershipController.deleteUserMembership);

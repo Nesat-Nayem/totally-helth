@@ -9,7 +9,8 @@ import {
   updateUserMembershipSchema,
   getUserMembershipSchema,
   getUserMembershipsSchema,
-  deleteUserMembershipSchema
+  deleteUserMembershipSchema,
+  setMembershipStatusSchema
 } from './userMembership.validation';
 
 /**
@@ -52,11 +53,8 @@ import {
  *           description: When the membership expires
  *         status:
  *           type: string
- *           enum: [active, expired, cancelled, completed]
+ *           enum: [active, hold, cancelled, completed]
  *           description: Membership status
- *         isActive:
- *           type: boolean
- *           description: Quick status check
  *         totalPrice:
  *           type: number
  *           description: Total price of the membership
@@ -150,7 +148,7 @@ export class UserMembershipController {
   static async createUserMembership(req: Request, res: Response, next: NextFunction) {
     try {
       const validated = createUserMembershipSchema.parse({ body: req.body });
-      const { userId, mealPlanId, totalMeals, totalPrice, receivedAmount, paymentMode, paymentStatus, note, startDate, endDate } = validated.body;
+      const { userId, mealPlanId, totalMeals, totalPrice, receivedAmount, paymentMode, paymentStatus, note, startDate, endDate, weeks } = validated.body;
 
       // Verify customer exists
       const customer = await Customer.findById(userId);
@@ -186,7 +184,7 @@ export class UserMembershipController {
          startDate: startDate ? new Date(startDate) : new Date(),
          endDate: new Date(endDate),
          status: 'active',
-         isActive: true,
+         weeks: weeks || [],
          history: [{
            action: 'created',
            consumedMeals: 0,
@@ -404,10 +402,13 @@ export class UserMembershipController {
         throw new appError('User membership not found', 404);
       }
 
+      // Determine effective status for this update (use requested status if provided)
+      const effectiveStatus = updateData.status ?? currentMembership.status;
+
       // Handle meal items if provided
       if (updateData.mealItems !== undefined) {
-        // Check if membership is active
-        if (currentMembership.status !== 'active' || !currentMembership.isActive) {
+        // If caller is changing status in this request, enforce against the target status
+        if (effectiveStatus !== 'active') {
           throw new appError('Cannot add meals to inactive membership', 400);
         }
 
@@ -442,15 +443,16 @@ export class UserMembershipController {
         updateData.consumedMeals = newConsumedMeals;
         updateData.remainingMeals = newRemainingMeals;
         
-        // Add history entry for meal consumption
+        // Add history entry for meal consumption (log only this punch's delta and items)
         const historyEntry = {
           action: 'consumed' as const,
-          consumedMeals: newConsumedMeals,
+          consumedMeals: totalNewMeals,
           remainingMeals: newRemainingMeals,
           mealsChanged: totalNewMeals,
           mealType: 'general' as const,
           timestamp: new Date(),
-          notes: `Consumed ${totalNewMeals} meal(s): ${currentMembership.consumedMeals} → ${newConsumedMeals} consumed, ${currentMembership.remainingMeals} → ${newRemainingMeals} remaining`
+          notes: `Consumed ${totalNewMeals} meal(s): ${currentMembership.consumedMeals} → ${newConsumedMeals} consumed, ${currentMembership.remainingMeals} → ${newRemainingMeals} remaining`,
+          mealItems: processedMealItems
         };
         
         // Add to history
@@ -471,6 +473,10 @@ export class UserMembershipController {
 
        // Simple incremental calculation with history tracking (only when mealItems are not provided)
        if (updateData.mealItems === undefined && (updateData.consumedMeals !== undefined || updateData.remainingMeals !== undefined)) {
+         // Membership must be active (considering target status if being changed in this request)
+         if (effectiveStatus !== 'active') {
+           throw new appError('Cannot consume meals on a membership that is not active (hold/cancelled/completed)', 400);
+         }
          const currentConsumed = currentMembership.consumedMeals;
          const currentRemaining = currentMembership.remainingMeals;
          let newConsumed = currentConsumed;
@@ -522,16 +528,16 @@ export class UserMembershipController {
            newConsumed = currentConsumed + mealsChanged;
          }
          
-         // Add to history
-         const historyEntry = {
-           action,
-           consumedMeals: newConsumed,
-           remainingMeals: newRemaining,
-           mealsChanged,
-           mealType: 'general',
-           timestamp: new Date(),
-           notes: `Consumed ${mealsChanged} meals: ${currentConsumed} → ${newConsumed} consumed, ${currentRemaining} → ${newRemaining} remaining`
-         };
+        // Add to history (log only delta consumed for this update)
+        const historyEntry = {
+          action,
+          consumedMeals: mealsChanged,
+          remainingMeals: newRemaining,
+          mealsChanged,
+          mealType: 'general',
+          timestamp: new Date(),
+          notes: `Consumed ${mealsChanged} meals: ${currentConsumed} → ${newConsumed} consumed, ${currentRemaining} → ${newRemaining} remaining`
+        };
          
          // Set the calculated values
          updateData.consumedMeals = newConsumed;
@@ -542,10 +548,8 @@ export class UserMembershipController {
       if (updateData.remainingMeals !== undefined) {
         if (updateData.remainingMeals === 0) {
           updateData.status = 'completed';
-          updateData.isActive = false;
-        } else if (updateData.remainingMeals > 0 && currentMembership.status === 'completed') {
+        } else if (updateData.remainingMeals > 0 && (currentMembership.status === 'completed' || currentMembership.status === 'hold')) {
           updateData.status = 'active';
-          updateData.isActive = true;
         }
       }
 
@@ -562,6 +566,68 @@ export class UserMembershipController {
         success: true,
         statusCode: 200,
         message: 'User membership updated successfully',
+        data: membership,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/v1/user-memberships/{id}/status:
+   *   patch:
+   *     summary: Set membership status to hold or active
+   *     tags: [User Memberships]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Membership ID
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [status]
+   *             properties:
+   *               status:
+   *                 type: string
+   *                 enum: [hold, active]
+   *     responses:
+   *       200:
+   *         description: Membership status updated
+   *       404:
+   *         description: User membership not found
+   */
+  static async setMembershipStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+      const validated = setMembershipStatusSchema.parse({ params: req.params, body: req.body });
+      const { id } = validated.params;
+      const { status } = validated.body;
+
+      const membership = await UserMembership.findById(id);
+      if (!membership) {
+        throw new appError('User membership not found', 404);
+      }
+
+      if (status === 'hold') {
+        membership.status = 'hold' as any;
+      } else if (status === 'active') {
+        membership.status = 'active' as any;
+      } else if (status === 'cancelled') {
+        membership.status = 'cancelled' as any;
+      }
+
+      await membership.save();
+
+      res.status(200).json({
+        success: true,
+        statusCode: 200,
+        message: 'Membership status updated successfully',
         data: membership,
       });
     } catch (error) {

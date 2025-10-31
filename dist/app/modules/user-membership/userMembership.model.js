@@ -95,12 +95,8 @@ const UserMembershipSchema = new mongoose_1.Schema({
     },
     status: {
         type: String,
-        enum: ['active', 'expired', 'cancelled', 'completed'],
+        enum: ['active', 'hold', 'cancelled', 'completed'],
         default: 'active'
-    },
-    isActive: {
-        type: Boolean,
-        default: true
     },
     totalPrice: {
         type: Number,
@@ -171,5 +167,5 @@ const UserMembershipSchema = new mongoose_1.Schema({
 UserMembershipSchema.index({ userId: 1, status: 1 });
 UserMembershipSchema.index({ mealPlanId: 1 });
 UserMembershipSchema.index({ endDate: 1 });
-UserMembershipSchema.index({ status: 1, isActive: 1 });
+UserMembershipSchema.index({ status: 1 });
 exports.UserMembership = mongoose_1.default.model('UserMembership', UserMembershipSchema);

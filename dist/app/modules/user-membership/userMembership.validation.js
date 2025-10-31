@@ -41,8 +41,7 @@ exports.updateUserMembershipSchema = zod_1.z.object({
         paymentMode: zod_1.z.enum(['cash', 'card', 'online', 'payment_link']).optional(),
         paymentStatus: zod_1.z.enum(['paid']).optional(),
         note: zod_1.z.string().optional(),
-        status: zod_1.z.enum(['active', 'expired', 'cancelled', 'completed']).optional(),
-        isActive: zod_1.z.boolean().optional(),
+        status: zod_1.z.enum(['active', 'hold', 'cancelled', 'completed']).optional(),
         mealItems: zod_1.z.array(exports.mealItemSchema).optional(), // Optional meal items when updating membership
     }),
 });
@@ -54,7 +53,7 @@ exports.getUserMembershipSchema = zod_1.z.object({
 exports.getUserMembershipsSchema = zod_1.z.object({
     query: zod_1.z.object({
         userId: zod_1.z.string().optional(),
-        status: zod_1.z.enum(['active', 'expired', 'cancelled', 'completed']).optional(),
+        status: zod_1.z.enum(['active', 'hold', 'cancelled', 'completed']).optional(),
         page: zod_1.z.string().optional(),
         limit: zod_1.z.string().optional(),
     }),
