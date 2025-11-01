@@ -14,7 +14,7 @@ app.use(cors())
 // swagger configuration
 setupSwagger(app);
 
-// Global access control - applies to all routes
+// Global access control - applies to all route
 app.use(globalAccessControl());
 
 // application route
