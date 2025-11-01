@@ -14,10 +14,10 @@ app.use(cors())
 // swagger configuration
 setupSwagger(app);
 
-// Global access control - applies to all route
+// Global access control - applies to all routes
 app.use(globalAccessControl());
 
-// application route
+// application routes
 app.use('/v1/api', router)
 
 const entryRoute = (req:Request, res:Response)=>{
