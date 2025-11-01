@@ -36,6 +36,7 @@ const createMealPlan = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             suitableList: body.suitableList ? ensureArray(body.suitableList) : undefined,
             daysPerWeek: body.daysPerWeek ? ensureArray(body.daysPerWeek) : undefined,
             weeksOffers: body.weeksOffers ? ensureWeekOffers(body.weeksOffers) : undefined,
+            weeks: body.weeks ? ensureWeeks(body.weeks) : undefined,
             totalMeals: body.totalMeals ? Number(body.totalMeals) : undefined,
             durationDays: body.durationDays ? Number(body.durationDays) : undefined,
             images: images.length ? images : undefined,
@@ -150,6 +151,8 @@ const updateMealPlanById = (req, res, next) => __awaiter(void 0, void 0, void 0,
             updateData.daysPerWeek = ensureArray(body.daysPerWeek);
         if (body.weeksOffers !== undefined)
             updateData.weeksOffers = ensureWeekOffers(body.weeksOffers);
+        if (body.weeks !== undefined)
+            updateData.weeks = ensureWeeks(body.weeks);
         if (body.status !== undefined)
             updateData.status = body.status === 'inactive' ? 'inactive' : 'active';
         if (body.totalMeals !== undefined)
@@ -218,6 +221,19 @@ function ensureArray(input) {
     return [];
 }
 function ensureWeekOffers(input) {
+    if (Array.isArray(input))
+        return input;
+    if (typeof input === 'string') {
+        try {
+            const parsed = JSON.parse(input);
+            if (Array.isArray(parsed))
+                return parsed;
+        }
+        catch (_a) { }
+    }
+    return [];
+}
+function ensureWeeks(input) {
     if (Array.isArray(input))
         return input;
     if (typeof input === 'string') {
