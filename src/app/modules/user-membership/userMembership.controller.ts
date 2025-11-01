@@ -11,7 +11,8 @@ import {
   getUserMembershipsSchema,
   deleteUserMembershipSchema,
   setMembershipStatusSchema,
-  punchMealsSchema
+  punchMealsSchema,
+  updateMealSelectionsSchema
 } from './userMembership.validation';
 
 /**
@@ -1160,6 +1161,228 @@ export class UserMembershipController {
         statusCode: 200,
         message: successMessage,
         data: membershipObj,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/v1/user-memberships/{id}/update-meal-selections:
+   *   patch:
+   *     summary: Update meal selections for a specific week and day (only if not consumed)
+   *     tags: [User Memberships]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Membership ID
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - week
+   *               - day
+   *               - meals
+   *             properties:
+   *               week:
+   *                 type: number
+   *                 description: Week number (1-based)
+   *               day:
+   *                 type: string
+   *                 enum: [saturday, sunday, monday, tuesday, wednesday, thursday, friday]
+   *                 description: Day of the week
+   *               meals:
+   *                 type: object
+   *                 properties:
+   *                   breakfast:
+   *                     type: array
+   *                     items:
+   *                       type: string
+   *                     maxItems: 3
+   *                     description: Breakfast meal items (max 3)
+   *                   lunch:
+   *                     type: array
+   *                     items:
+   *                       type: string
+   *                     maxItems: 3
+   *                     description: Lunch meal items (max 3)
+   *                   snacks:
+   *                     type: array
+   *                     items:
+   *                       type: string
+   *                     maxItems: 3
+   *                     description: Snacks meal items (max 3)
+   *                   dinner:
+   *                     type: array
+   *                     items:
+   *                       type: string
+   *                     maxItems: 3
+   *                     description: Dinner meal items (max 3)
+   *     responses:
+   *       200:
+   *         description: Meal selections updated successfully
+   *       400:
+   *         description: Bad request (meals already consumed or invalid data)
+   *       404:
+   *         description: User membership, week, or day not found
+   */
+  static async updateMealSelections(req: Request, res: Response, next: NextFunction) {
+    try {
+      const validated = updateMealSelectionsSchema.parse({ 
+        params: req.params, 
+        body: req.body 
+      });
+      const { id } = validated.params;
+      const { week, day, meals } = validated.body;
+
+      // Get the current membership
+      const membership = await UserMembership.findById(id);
+      if (!membership) {
+        throw new appError('User membership not found', 404);
+      }
+
+      // Check if membership is active
+      if (membership.status !== 'active') {
+        throw new appError('Cannot update meal selections for inactive membership', 400);
+      }
+
+      // Check if weeks data exists
+      if (!membership.weeks || membership.weeks.length === 0) {
+        throw new appError('No meal plan weeks found for this membership', 400);
+      }
+
+      // Find the week in the weeks array
+      const weekPlan = membership.weeks.find(w => w.week === week);
+      if (!weekPlan) {
+        throw new appError(`Week ${week} not found in meal plan`, 404);
+      }
+
+      // Find the day in the week
+      const dayIndex = weekPlan.days.findIndex(d => d.day === day.toLowerCase());
+      if (dayIndex === -1) {
+        throw new appError(`Day ${day} not found in week ${week}`, 404);
+      }
+
+      const dayPlan = weekPlan.days[dayIndex];
+
+      // Check if meals have been consumed for this day
+      const consumedMeals = dayPlan.consumedMeals || {
+        breakfast: false,
+        lunch: false,
+        dinner: false,
+        snacks: false,
+      };
+
+      // Check if any meal type has been consumed
+      const hasConsumedMeals = consumedMeals.breakfast || 
+                               consumedMeals.lunch || 
+                               consumedMeals.dinner || 
+                               consumedMeals.snacks;
+
+      // Also check isConsumed flag
+      if (dayPlan.isConsumed || hasConsumedMeals) {
+        // Get list of consumed meal types
+        const consumedTypes: string[] = [];
+        if (consumedMeals.breakfast) consumedTypes.push('breakfast');
+        if (consumedMeals.lunch) consumedTypes.push('lunch');
+        if (consumedMeals.dinner) consumedTypes.push('dinner');
+        if (consumedMeals.snacks) consumedTypes.push('snacks');
+
+        throw new appError(
+          `Cannot update meal selections for ${day} in week ${week}. Meals have already been consumed: ${consumedTypes.join(', ')}`,
+          400
+        );
+      }
+
+      // Update the meal selections for this day
+      // Capture existing meals before update to track changes
+      const weekIndex = membership.weeks.findIndex(w => w.week === week);
+      const existingMeals = dayPlan.meals || {};
+      
+      // Track which meal types changed and their before/after values
+      const mealChanges: Array<{
+        mealType: 'breakfast' | 'lunch' | 'snacks' | 'dinner';
+        before: string[];
+        after: string[];
+      }> = [];
+
+      // Prepare updated meals and track changes
+      const updatedMeals: any = {};
+      const mealTypes: Array<'breakfast' | 'lunch' | 'snacks' | 'dinner'> = ['breakfast', 'lunch', 'snacks', 'dinner'];
+      
+      for (const mealType of mealTypes) {
+        const existingItems = existingMeals[mealType] || [];
+        const newItems = meals[mealType];
+        
+        if (newItems !== undefined) {
+          // This meal type is being updated
+          updatedMeals[mealType] = newItems;
+          
+          // Track the change if items actually changed
+          const existingStr = JSON.stringify(existingItems.sort());
+          const newStr = JSON.stringify(newItems.sort());
+          
+          if (existingStr !== newStr) {
+            mealChanges.push({
+              mealType,
+              before: [...existingItems],
+              after: [...newItems],
+            });
+          }
+        } else {
+          // Keep existing items
+          updatedMeals[mealType] = existingItems;
+        }
+      }
+
+      // Update the meals
+      membership.weeks[weekIndex].days[dayIndex].meals = updatedMeals;
+
+      // Build detailed notes about changes
+      let notes = `Updated meal selections for ${day} in week ${week}`;
+      if (mealChanges.length > 0) {
+        const changeDetails = mealChanges.map(change => {
+          const beforeStr = change.before.length > 0 ? change.before.join(', ') : '(empty)';
+          const afterStr = change.after.length > 0 ? change.after.join(', ') : '(empty)';
+          return `${change.mealType}: [${beforeStr}] → [${afterStr}]`;
+        });
+        notes += `. Changes: ${changeDetails.join('; ')}`;
+      }
+
+      // Add history entry with detailed change information
+      const historyEntry: any = {
+        action: 'updated' as const,
+        consumedMeals: membership.consumedMeals,
+        remainingMeals: membership.remainingMeals,
+        currentConsumed: 0,
+        timestamp: new Date(),
+        notes: notes,
+        week: week,
+        day: day.toLowerCase() as 'saturday' | 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday',
+        mealChanges: mealChanges.length > 0 ? mealChanges : undefined, // Store structured change data
+      };
+
+      membership.history.push(historyEntry);
+
+      // Save the membership
+      await membership.save();
+
+      // Populate references before returning
+      await membership.populate('userId', 'name email phone address status');
+      await membership.populate('mealPlanId', 'title description price totalMeals durationDays');
+
+      res.status(200).json({
+        success: true,
+        statusCode: 200,
+        message: `Meal selections updated successfully for ${day} in week ${week}`,
+        data: membership,
       });
     } catch (error) {
       next(error);

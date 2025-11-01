@@ -189,6 +189,9 @@ router.patch('/:id/status', UserMembershipController.setMembershipStatus);
 // Punch meals for a specific week and day
 router.post('/:id/punch', UserMembershipController.punchMeals);
 
+// Update meal selections for a specific week and day (only if not consumed)
+router.patch('/:id/update-meal-selections', UserMembershipController.updateMealSelections);
+
 // Delete user membership
 router.delete('/:id', UserMembershipController.deleteUserMembership);
 

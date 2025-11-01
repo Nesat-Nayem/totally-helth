@@ -155,3 +155,28 @@ export const punchMealsSchema = z.object({
     }
   ),
 });
+
+// Validation schema for updating meal selections for a specific week and day
+export const updateMealSelectionsSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'Membership ID is required'),
+  }),
+  body: z.object({
+    week: z.number().int().min(1, 'Week number must be at least 1'),
+    day: dayOfWeekEnum,
+    meals: mealTypeSchema, // The updated meal selections (at least one meal type must be provided)
+  }).refine(
+    (data) => {
+      // Ensure at least one meal type is provided
+      const meals = data.meals || {};
+      return meals.breakfast !== undefined || 
+             meals.lunch !== undefined || 
+             meals.snacks !== undefined || 
+             meals.dinner !== undefined;
+    },
+    {
+      message: 'At least one meal type (breakfast, lunch, snacks, or dinner) must be provided',
+      path: ['meals'],
+    }
+  ),
+});

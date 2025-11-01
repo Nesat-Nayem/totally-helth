@@ -78,6 +78,12 @@ export interface IUserMembership extends Document {
     day?: DayOfWeek;
     consumedMealTypes?: ('breakfast' | 'lunch' | 'dinner' | 'snacks')[];
     mealItems?: IMealItem[]; // Meal items for this specific history entry
+    // Track meal changes for update action
+    mealChanges?: Array<{
+      mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks';
+      before: string[]; // Items before update
+      after: string[]; // Items after update
+    }>;
   }>;
   // Optional weeks field for structured meal plans
   weeks?: IWeekMealPlan[];

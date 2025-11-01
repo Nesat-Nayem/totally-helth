@@ -202,6 +202,15 @@ const UserMembershipSchema: Schema = new Schema(
         type: String,
         enum: ['breakfast', 'lunch', 'dinner', 'snacks'],
       }],
+      // Track meal changes for update action
+      mealChanges: [{
+        mealType: {
+          type: String,
+          enum: ['breakfast', 'lunch', 'dinner', 'snacks'],
+        },
+        before: [{ type: String }], // Items before update
+        after: [{ type: String }], // Items after update
+      }],
     }],
     // Optional weeks field for structured meal plans
     weeks: [WeekMealPlanSchema],
