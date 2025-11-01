@@ -51,7 +51,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateThermalReceipt = exports.deleteDayCloseReportsByDate = exports.getSingleDayCloseReport = exports.downloadDayCloseReports = exports.getDayCloseReportsByDate = exports.getDayCloseReports = void 0;
+exports.generateThermalReceiptJson = exports.generateThermalReceipt = exports.deleteDayCloseReportsByDate = exports.getSingleDayCloseReport = exports.downloadDayCloseReports = exports.getDayCloseReportsByDate = exports.getDayCloseReports = void 0;
 const shift_model_1 = require("../shift/shift.model");
 const order_model_1 = require("../order/order.model");
 const day_close_report_validation_1 = require("./day-close-report.validation");
@@ -984,7 +984,7 @@ const generateThermalReceipt = (req, res) => __awaiter(void 0, void 0, void 0, f
             const daySalesData = yield day_sales_model_1.DaySales.findOne(Object.assign({ date: date }, (branchId ? { branchId } : {}))).lean();
             if (daySalesData) {
                 // Use stored DaySales data with denomination
-                thermalData = formatThermalReceiptFromDaySales(daySalesData, date, timezone);
+                thermalData = yield formatThermalReceiptFromDaySales(daySalesData, date, timezone);
             }
             else {
                 // Fallback: Get orders and calculate (for days without DaySales record)
@@ -1077,97 +1077,91 @@ exports.generateThermalReceipt = generateThermalReceipt;
  * @param req - Express request object
  * @param res - Express response object
  */
-const generateThermalReceiptJson = function* () {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const { date } = req.params;
-            const reqUser = req;
-            const branchId = reqUser.branchId;
-            const timezone = reqUser.timezone || DEFAULT_TIMEZONE;
-            if (!date) {
-                res.status(400).json({
-                    success: false,
-                    statusCode: 400,
-                    message: 'Date parameter is required'
-                });
-                return;
-            }
-            // Use DaySales data for thermal receipt generation (optimized)
-            let thermalData;
-            try {
-                // Try to get data from DaySales table first (optimized)
-                const daySalesData = yield day_sales_model_1.DaySales.findOne({
-                    date: date,
-                    ...(branchId ? { branchId } : {})
-                }).lean();
-                if (daySalesData) {
-                    // Use stored DaySales data with denomination
-                    thermalData = formatThermalReceiptFromDaySales(daySalesData, date, timezone);
-                }
-                else {
-                    // Fallback: Get orders and calculate (for days without DaySales record)
-                    const startOfDay = new Date(date + 'T00:00:00.000Z');
-                    const endOfDay = new Date(date + 'T23:59:59.999Z');
-                    const orderQuery = {
-                        $or: [
-                            {
-                                createdAt: {
-                                    $gte: startOfDay,
-                                    $lte: endOfDay
-                                }
-                            },
-                            {
-                                updatedAt: {
-                                    $gte: startOfDay,
-                                    $lte: endOfDay
-                                }
-                            }
-                        ],
-                        status: 'paid',
-                        canceled: { $ne: true },
-                        isDeleted: { $ne: true }
-                    };
-                    if (branchId) {
-                        orderQuery.branchId = branchId;
-                    }
-                    const orders = yield order_model_1.Order.find(orderQuery).lean();
-                    if (orders.length === 0) {
-                        res.status(404).json({
-                            success: false,
-                            statusCode: 404,
-                            message: 'No orders found for the specified date'
-                        });
-                        return;
-                    }
-                    thermalData = formatThermalReceiptData(orders, date, timezone);
-                }
-            }
-            catch (error) {
-                console.error('Error getting thermal data:', error);
-                res.status(500).json({
-                    success: false,
-                    statusCode: 500,
-                    message: 'Failed to retrieve thermal receipt data'
-                });
-                return;
-            }
-            // Return JSON response instead of HTML
-            res.status(200).json({
-                success: true,
-                statusCode: 200,
-                message: 'Thermal receipt data retrieved successfully',
-                data: thermalData
-            });
-        }
-        catch (error) {
+const generateThermalReceiptJson = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { date } = req.params;
+        const reqUser = req;
+        const branchId = reqUser.branchId;
+        const timezone = reqUser.timezone || DEFAULT_TIMEZONE;
+        if (!date) {
             res.status(400).json({
                 success: false,
                 statusCode: 400,
-                message: (error === null || error === void 0 ? void 0 : error.message) || 'Failed to generate thermal receipt data'
+                message: 'Date parameter is required'
             });
+            return;
         }
-    });
-};
+        // Use DaySales data for thermal receipt generation (optimized)
+        let thermalData;
+        try {
+            // Try to get data from DaySales table first (optimized)
+            const daySalesData = yield day_sales_model_1.DaySales.findOne(Object.assign({ date: date }, (branchId ? { branchId } : {}))).lean();
+            if (daySalesData) {
+                // Use stored DaySales data with denomination
+                thermalData = yield formatThermalReceiptFromDaySales(daySalesData, date, timezone);
+            }
+            else {
+                // Fallback: Get orders and calculate (for days without DaySales record)
+                const startOfDay = new Date(date + 'T00:00:00.000Z');
+                const endOfDay = new Date(date + 'T23:59:59.999Z');
+                const orderQuery = {
+                    $or: [
+                        {
+                            createdAt: {
+                                $gte: startOfDay,
+                                $lte: endOfDay
+                            }
+                        },
+                        {
+                            updatedAt: {
+                                $gte: startOfDay,
+                                $lte: endOfDay
+                            }
+                        }
+                    ],
+                    canceled: { $ne: true },
+                    isDeleted: { $ne: true }
+                };
+                if (branchId) {
+                    orderQuery.branchId = branchId;
+                }
+                const orders = yield order_model_1.Order.find(orderQuery).lean();
+                if (orders.length === 0) {
+                    res.status(404).json({
+                        success: false,
+                        statusCode: 404,
+                        message: 'No orders found for the specified date'
+                    });
+                    return;
+                }
+                thermalData = formatThermalReceiptData(orders, date, timezone);
+            }
+        }
+        catch (error) {
+            console.error('Error getting thermal data:', error);
+            res.status(500).json({
+                success: false,
+                statusCode: 500,
+                message: 'Failed to retrieve thermal receipt data'
+            });
+            return;
+        }
+        // Return JSON response instead of HTML
+        res.status(200).json({
+            success: true,
+            statusCode: 200,
+            message: 'Thermal receipt data retrieved successfully',
+            data: thermalData
+        });
+    }
+    catch (error) {
+        res.status(400).json({
+            success: false,
+            statusCode: 400,
+            message: (error === null || error === void 0 ? void 0 : error.message) || 'Failed to generate thermal receipt data'
+        });
+    }
+});
 exports.generateThermalReceiptJson = generateThermalReceiptJson;
 /**
  * Formats DaySales data into thermal receipt format (Optimized)
@@ -1177,10 +1171,68 @@ exports.generateThermalReceiptJson = generateThermalReceiptJson;
  * @param timezone - Timezone for date formatting
  * @returns Formatted thermal receipt data
  */
-const formatThermalReceiptFromDaySales = (daySalesData, date, timezone) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7;
+const formatThermalReceiptFromDaySales = (daySalesData, date, timezone) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8;
     const daySales = daySalesData.daySales;
     const shiftWiseSales = daySalesData.shiftWiseSales;
+    // Calculate membership breakdown from actual orders if not available in DaySales
+    let membershipMeal = 0;
+    let membershipRegister = 0;
+    // Check if DaySales has separate membership fields
+    if (((_a = daySales.salesByType) === null || _a === void 0 ? void 0 : _a.membershipMeal) !== undefined && ((_b = daySales.salesByType) === null || _b === void 0 ? void 0 : _b.membershipRegister) !== undefined) {
+        membershipMeal = daySales.salesByType.membershipMeal;
+        membershipRegister = daySales.salesByType.membershipRegister;
+    }
+    else {
+        // Calculate from actual orders
+        const startOfDay = new Date(date + 'T00:00:00.000Z');
+        const endOfDay = new Date(date + 'T23:59:59.999Z');
+        const orderQuery = {
+            $or: [
+                {
+                    createdAt: {
+                        $gte: startOfDay,
+                        $lte: endOfDay
+                    }
+                },
+                {
+                    updatedAt: {
+                        $gte: startOfDay,
+                        $lte: endOfDay
+                    }
+                }
+            ],
+            salesType: 'membership',
+            canceled: { $ne: true },
+            isDeleted: { $ne: true }
+        };
+        if (daySalesData.branchId) {
+            orderQuery.branchId = daySalesData.branchId;
+        }
+        const membershipOrders = yield order_model_1.Order.find(orderQuery).lean();
+        membershipOrders.forEach(order => {
+            const orderTotal = order.total || 0;
+            const discountAmount = order.discountAmount || 0;
+            // Calculate actual order amount from payments
+            let actualOrderAmount = 0;
+            if (order.payments && order.payments.length > 0) {
+                actualOrderAmount = order.payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+            }
+            else {
+                actualOrderAmount = order.payableAmount || orderTotal;
+            }
+            if (order.orderType === 'MembershipMeal') {
+                membershipMeal += actualOrderAmount;
+            }
+            else if (order.orderType === 'NewMembership') {
+                membershipRegister += actualOrderAmount;
+            }
+            else {
+                // Fallback for other membership order types
+                membershipMeal += actualOrderAmount;
+            }
+        });
+    }
     // Format date for display
     const displayDate = new Date(date).toLocaleDateString('en-GB', {
         day: '2-digit',
@@ -1218,14 +1270,14 @@ const formatThermalReceiptFromDaySales = (daySalesData, date, timezone) => {
             grandTotal: (daySales.totalSales || 0).toFixed(2)
         },
         salesDetails: {
-            restaurantSales: (((_a = daySales.salesByType) === null || _a === void 0 ? void 0 : _a.restaurant) || 0).toFixed(2),
-            membershipMeal: (((_b = daySales.salesByType) === null || _b === void 0 ? void 0 : _b.membership) || 0).toFixed(2),
-            membershipRegister: "0.00" // This would need separate tracking if needed
+            restaurantSales: (((_c = daySales.salesByType) === null || _c === void 0 ? void 0 : _c.restaurant) || 0).toFixed(2),
+            membershipMeal: membershipMeal.toFixed(2),
+            membershipRegister: membershipRegister.toFixed(2)
         },
         collectionDetails: {
-            cashSalesAmount: (((_c = daySales.payments) === null || _c === void 0 ? void 0 : _c.cash) || 0).toFixed(2),
-            creditCardAmount: (((_d = daySales.payments) === null || _d === void 0 ? void 0 : _d.card) || 0).toFixed(2),
-            onlineSalesAmount: (((_e = daySales.salesByType) === null || _e === void 0 ? void 0 : _e.online) || 0).toFixed(2),
+            cashSalesAmount: (((_d = daySales.payments) === null || _d === void 0 ? void 0 : _d.cash) || 0).toFixed(2),
+            creditCardAmount: (((_e = daySales.payments) === null || _e === void 0 ? void 0 : _e.card) || 0).toFixed(2),
+            onlineSalesAmount: (((_f = daySales.salesByType) === null || _f === void 0 ? void 0 : _f.online) || 0).toFixed(2),
             tawseelAmount: "0.00",
             totalCollection: (daySales.totalSales || 0).toFixed(2)
         },
@@ -1235,24 +1287,24 @@ const formatThermalReceiptFromDaySales = (daySalesData, date, timezone) => {
         },
         denomination: {
             denominations: [
-                { value: "1000 DH", quantity: (((_f = daySalesData.denomination) === null || _f === void 0 ? void 0 : _f.denomination1000) || 0).toFixed(2), amount: ((((_g = daySalesData.denomination) === null || _g === void 0 ? void 0 : _g.denomination1000) || 0) * 1000).toFixed(2) },
-                { value: "500 DHS", quantity: (((_h = daySalesData.denomination) === null || _h === void 0 ? void 0 : _h.denomination500) || 0).toFixed(2), amount: ((((_j = daySalesData.denomination) === null || _j === void 0 ? void 0 : _j.denomination500) || 0) * 500).toFixed(2) },
-                { value: "200 DHS", quantity: (((_k = daySalesData.denomination) === null || _k === void 0 ? void 0 : _k.denomination200) || 0).toFixed(2), amount: ((((_l = daySalesData.denomination) === null || _l === void 0 ? void 0 : _l.denomination200) || 0) * 200).toFixed(2) },
-                { value: "100 DHS", quantity: (((_m = daySalesData.denomination) === null || _m === void 0 ? void 0 : _m.denomination100) || 0).toFixed(2), amount: ((((_o = daySalesData.denomination) === null || _o === void 0 ? void 0 : _o.denomination100) || 0) * 100).toFixed(2) },
-                { value: "50 DHS", quantity: (((_p = daySalesData.denomination) === null || _p === void 0 ? void 0 : _p.denomination50) || 0).toFixed(2), amount: ((((_q = daySalesData.denomination) === null || _q === void 0 ? void 0 : _q.denomination50) || 0) * 50).toFixed(2) },
-                { value: "20 DHS", quantity: (((_r = daySalesData.denomination) === null || _r === void 0 ? void 0 : _r.denomination20) || 0).toFixed(2), amount: ((((_s = daySalesData.denomination) === null || _s === void 0 ? void 0 : _s.denomination20) || 0) * 20).toFixed(2) },
-                { value: "10 DHS", quantity: (((_t = daySalesData.denomination) === null || _t === void 0 ? void 0 : _t.denomination10) || 0).toFixed(2), amount: ((((_u = daySalesData.denomination) === null || _u === void 0 ? void 0 : _u.denomination10) || 0) * 10).toFixed(2) },
-                { value: "5 DHS", quantity: (((_v = daySalesData.denomination) === null || _v === void 0 ? void 0 : _v.denomination5) || 0).toFixed(2), amount: ((((_w = daySalesData.denomination) === null || _w === void 0 ? void 0 : _w.denomination5) || 0) * 5).toFixed(2) },
-                { value: "2 DHS", quantity: (((_x = daySalesData.denomination) === null || _x === void 0 ? void 0 : _x.denomination2) || 0).toFixed(2), amount: ((((_y = daySalesData.denomination) === null || _y === void 0 ? void 0 : _y.denomination2) || 0) * 2).toFixed(2) },
-                { value: "1 DHS", quantity: (((_z = daySalesData.denomination) === null || _z === void 0 ? void 0 : _z.denomination1) || 0).toFixed(2), amount: ((((_0 = daySalesData.denomination) === null || _0 === void 0 ? void 0 : _0.denomination1) || 0) * 1).toFixed(2) }
+                { value: "1000 DH", quantity: (((_g = daySalesData.denomination) === null || _g === void 0 ? void 0 : _g.denomination1000) || 0).toFixed(2), amount: ((((_h = daySalesData.denomination) === null || _h === void 0 ? void 0 : _h.denomination1000) || 0) * 1000).toFixed(2) },
+                { value: "500 DHS", quantity: (((_j = daySalesData.denomination) === null || _j === void 0 ? void 0 : _j.denomination500) || 0).toFixed(2), amount: ((((_k = daySalesData.denomination) === null || _k === void 0 ? void 0 : _k.denomination500) || 0) * 500).toFixed(2) },
+                { value: "200 DHS", quantity: (((_l = daySalesData.denomination) === null || _l === void 0 ? void 0 : _l.denomination200) || 0).toFixed(2), amount: ((((_m = daySalesData.denomination) === null || _m === void 0 ? void 0 : _m.denomination200) || 0) * 200).toFixed(2) },
+                { value: "100 DHS", quantity: (((_o = daySalesData.denomination) === null || _o === void 0 ? void 0 : _o.denomination100) || 0).toFixed(2), amount: ((((_p = daySalesData.denomination) === null || _p === void 0 ? void 0 : _p.denomination100) || 0) * 100).toFixed(2) },
+                { value: "50 DHS", quantity: (((_q = daySalesData.denomination) === null || _q === void 0 ? void 0 : _q.denomination50) || 0).toFixed(2), amount: ((((_r = daySalesData.denomination) === null || _r === void 0 ? void 0 : _r.denomination50) || 0) * 50).toFixed(2) },
+                { value: "20 DHS", quantity: (((_s = daySalesData.denomination) === null || _s === void 0 ? void 0 : _s.denomination20) || 0).toFixed(2), amount: ((((_t = daySalesData.denomination) === null || _t === void 0 ? void 0 : _t.denomination20) || 0) * 20).toFixed(2) },
+                { value: "10 DHS", quantity: (((_u = daySalesData.denomination) === null || _u === void 0 ? void 0 : _u.denomination10) || 0).toFixed(2), amount: ((((_v = daySalesData.denomination) === null || _v === void 0 ? void 0 : _v.denomination10) || 0) * 10).toFixed(2) },
+                { value: "5 DHS", quantity: (((_w = daySalesData.denomination) === null || _w === void 0 ? void 0 : _w.denomination5) || 0).toFixed(2), amount: ((((_x = daySalesData.denomination) === null || _x === void 0 ? void 0 : _x.denomination5) || 0) * 5).toFixed(2) },
+                { value: "2 DHS", quantity: (((_y = daySalesData.denomination) === null || _y === void 0 ? void 0 : _y.denomination2) || 0).toFixed(2), amount: ((((_z = daySalesData.denomination) === null || _z === void 0 ? void 0 : _z.denomination2) || 0) * 2).toFixed(2) },
+                { value: "1 DHS", quantity: (((_0 = daySalesData.denomination) === null || _0 === void 0 ? void 0 : _0.denomination1) || 0).toFixed(2), amount: ((((_1 = daySalesData.denomination) === null || _1 === void 0 ? void 0 : _1.denomination1) || 0) * 1).toFixed(2) }
             ],
-            totalAmount: (((_1 = daySalesData.denomination) === null || _1 === void 0 ? void 0 : _1.totalCash) || 0).toFixed(2), // Use stored denomination total
-            expectedCashSales: (((_2 = daySales.payments) === null || _2 === void 0 ? void 0 : _2.cash) || 0).toFixed(2),
-            actualCashCount: (((_3 = daySalesData.denomination) === null || _3 === void 0 ? void 0 : _3.totalCash) || 0).toFixed(2), // Use stored denomination total
-            difference: ((((_4 = daySalesData.denomination) === null || _4 === void 0 ? void 0 : _4.totalCash) || 0) - (((_5 = daySales.payments) === null || _5 === void 0 ? void 0 : _5.cash) || 0)).toFixed(2) // Calculate difference
+            totalAmount: (((_2 = daySalesData.denomination) === null || _2 === void 0 ? void 0 : _2.totalCash) || 0).toFixed(2), // Use stored denomination total
+            expectedCashSales: (((_3 = daySales.payments) === null || _3 === void 0 ? void 0 : _3.cash) || 0).toFixed(2),
+            actualCashCount: (((_4 = daySalesData.denomination) === null || _4 === void 0 ? void 0 : _4.totalCash) || 0).toFixed(2), // Use stored denomination total
+            difference: ((((_5 = daySalesData.denomination) === null || _5 === void 0 ? void 0 : _5.totalCash) || 0) - (((_6 = daySales.payments) === null || _6 === void 0 ? void 0 : _6.cash) || 0)).toFixed(2) // Calculate difference
         },
         difference: {
-            totalDifferenceInCash: ((((_6 = daySalesData.denomination) === null || _6 === void 0 ? void 0 : _6.totalCash) || 0) - (((_7 = daySales.payments) === null || _7 === void 0 ? void 0 : _7.cash) || 0)).toFixed(2)
+            totalDifferenceInCash: ((((_7 = daySalesData.denomination) === null || _7 === void 0 ? void 0 : _7.totalCash) || 0) - (((_8 = daySales.payments) === null || _8 === void 0 ? void 0 : _8.cash) || 0)).toFixed(2)
         },
         rawData: {
             totalOrders: daySales.totalOrders || 0,
@@ -1261,7 +1313,7 @@ const formatThermalReceiptFromDaySales = (daySalesData, date, timezone) => {
             source: 'DaySales'
         }
     };
-};
+});
 /**
  * Formats order data into thermal receipt format
  * Supports both membership and non-membership orders
@@ -1313,13 +1365,16 @@ const formatThermalReceiptData = (orders, date, timezone) => {
             onlineSales += actualOrderAmount;
         }
         else if (order.salesType === 'membership') {
-            // For membership sales type, check if it's a meal or registration
-            if (order.orderType === 'membership') {
+            // For membership sales type, check the order type to distinguish between meal and registration
+            if (order.orderType === 'MembershipMeal') {
                 membershipMeal += actualOrderAmount;
             }
-            else {
-                // If it's membership sales type but not membership order type, it's registration
+            else if (order.orderType === 'NewMembership') {
                 membershipRegister += actualOrderAmount;
+            }
+            else {
+                // Fallback for other membership order types
+                membershipMeal += actualOrderAmount;
             }
         }
         else {
@@ -1569,7 +1624,7 @@ const collectComprehensiveReportData = (targetDates, branchId, payload) => __awa
                 denomination: (daySalesData === null || daySalesData === void 0 ? void 0 : daySalesData.denomination) || null,
                 totalShifts: (daySalesData === null || daySalesData === void 0 ? void 0 : daySalesData.totalShifts) || shiftData.length,
                 // Thermal receipt data - only if we have DaySales data
-                thermalReceiptData: (payload === null || payload === void 0 ? void 0 : payload.includeThermalReceipt) && daySalesData ? formatThermalReceiptFromDaySales(daySalesData, date, 'Asia/Dubai') : null
+                thermalReceiptData: (payload === null || payload === void 0 ? void 0 : payload.includeThermalReceipt) && daySalesData ? yield formatThermalReceiptFromDaySales(daySalesData, date, 'Asia/Dubai') : null
             };
             reportData.push(dayReport);
         }

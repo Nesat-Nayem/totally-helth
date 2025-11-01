@@ -143,12 +143,14 @@ const verifyOtp = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         yield user.save();
         // Remove password from response
         const _a = user.toObject(), { password: _ } = _a, userObject = __rest(_a, ["password"]);
+        // Include role and menuAccess in response for frontend
+        const responseData = Object.assign(Object.assign({}, userObject), { role: user.role, menuAccess: user.menuAccess || {} });
         res.json({
             success: true,
             statusCode: 200,
             message: "OTP verified successfully",
             token,
-            data: userObject
+            data: responseData
         });
         return;
     }
@@ -253,12 +255,14 @@ const loginController = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         const token = (0, generateToken_1.generateToken)(user, extras);
         // remove password
         const _a = user.toObject(), { password: _ } = _a, userObject = __rest(_a, ["password"]);
+        // Include role and menuAccess in response for frontend
+        const responseData = Object.assign(Object.assign(Object.assign({}, userObject), (extras || {})), { role: user.role, menuAccess: user.menuAccess || {} });
         res.json({
             success: true,
             statusCode: 200,
             message: "User logged in successfully",
             token,
-            data: Object.assign(Object.assign({}, userObject), (extras || {})),
+            data: responseData,
         });
         return;
     }

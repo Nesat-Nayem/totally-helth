@@ -36,6 +36,8 @@ const createMealPlan = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             suitableList: body.suitableList ? ensureArray(body.suitableList) : undefined,
             daysPerWeek: body.daysPerWeek ? ensureArray(body.daysPerWeek) : undefined,
             weeksOffers: body.weeksOffers ? ensureWeekOffers(body.weeksOffers) : undefined,
+            totalMeals: body.totalMeals ? Number(body.totalMeals) : undefined,
+            durationDays: body.durationDays ? Number(body.durationDays) : undefined,
             images: images.length ? images : undefined,
             thumbnail: thumbnail,
             status: body.status === 'inactive' ? 'inactive' : 'active',
@@ -150,6 +152,10 @@ const updateMealPlanById = (req, res, next) => __awaiter(void 0, void 0, void 0,
             updateData.weeksOffers = ensureWeekOffers(body.weeksOffers);
         if (body.status !== undefined)
             updateData.status = body.status === 'inactive' ? 'inactive' : 'active';
+        if (body.totalMeals !== undefined)
+            updateData.totalMeals = Number(body.totalMeals);
+        if (body.durationDays !== undefined)
+            updateData.durationDays = Number(body.durationDays);
         const files = req.files;
         const newImages = ((files === null || files === void 0 ? void 0 : files.images) || []).map((f) => f.path);
         const newThumbnail = (_b = (_a = files === null || files === void 0 ? void 0 : files.thumbnail) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.path;

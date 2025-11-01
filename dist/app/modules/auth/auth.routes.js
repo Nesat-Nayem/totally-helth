@@ -7,6 +7,7 @@ exports.authRouter = void 0;
 const express_1 = __importDefault(require("express"));
 const auth_controller_1 = require("./auth.controller");
 const authMiddleware_1 = require("../../middlewares/authMiddleware");
+const role_routes_1 = require("./role.routes");
 const router = express_1.default.Router();
 /**
  * @swagger
@@ -366,4 +367,6 @@ router.post("/request-otp", auth_controller_1.requestOtp);
  *         description: Invalid OTP
  */
 router.post("/verify-otp", auth_controller_1.verifyOtp);
+// Include role management routes
+router.use('/', role_routes_1.roleRouter);
 exports.authRouter = router;

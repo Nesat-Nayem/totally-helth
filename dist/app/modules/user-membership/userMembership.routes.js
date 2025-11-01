@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { UserMembershipController } from './userMembership.controller';
-
-const router = Router();
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const userMembership_controller_1 = require("./userMembership.controller");
+const router = (0, express_1.Router)();
 /**
  * @swagger
  * /v1/api/user-memberships:
@@ -46,7 +46,7 @@ const router = Router();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- * 
+ *
  * /v1/api/user-memberships:
  *   get:
  *     summary: Get all user memberships
@@ -61,7 +61,7 @@ const router = Router();
  *         name: status
  *         schema:
  *           type: string
- *           enum: [active, hold, cancelled, completed]
+ *           enum: [active, expired, cancelled, completed]
  *         description: Filter by status
  *       - in: query
  *         name: page
@@ -80,7 +80,7 @@ const router = Router();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Success'
- * 
+ *
  * /v1/api/user-memberships/{id}:
  *   get:
  *     summary: Get user membership by ID
@@ -105,7 +105,7 @@ const router = Router();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- * 
+ *
  * /v1/api/user-memberships/{id}:
  *   put:
  *     summary: Update user membership
@@ -130,7 +130,9 @@ const router = Router();
  *                 type: number
  *               status:
  *                 type: string
- *                 enum: [active, hold, cancelled, completed]
+ *                 enum: [active, expired, cancelled, completed]
+ *               isActive:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: User membership updated successfully
@@ -144,7 +146,7 @@ const router = Router();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- * 
+ *
  * /v1/api/user-memberships/{id}:
  *   delete:
  *     summary: Delete user membership
@@ -170,29 +172,14 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-
 // Create user membership
-router.post('/', UserMembershipController.createUserMembership);
-
+router.post('/', userMembership_controller_1.UserMembershipController.createUserMembership);
 // Get all user memberships
-router.get('/', UserMembershipController.getUserMemberships);
-
+router.get('/', userMembership_controller_1.UserMembershipController.getUserMemberships);
 // Get user membership by ID
-router.get('/:id', UserMembershipController.getUserMembership);
-
+router.get('/:id', userMembership_controller_1.UserMembershipController.getUserMembership);
 // Update user membership
-router.put('/:id', UserMembershipController.updateUserMembership);
-
-// Set membership status (active/hold/cancelled)
-router.patch('/:id/status', UserMembershipController.setMembershipStatus);
-
-// Punch meals for a specific week and day
-router.post('/:id/punch', UserMembershipController.punchMeals);
-
-// Update meal selections for a specific week and day (only if not consumed)
-router.patch('/:id/update-meal-selections', UserMembershipController.updateMealSelections);
-
+router.put('/:id', userMembership_controller_1.UserMembershipController.updateUserMembership);
 // Delete user membership
-router.delete('/:id', UserMembershipController.deleteUserMembership);
-
-export default router;
+router.delete('/:id', userMembership_controller_1.UserMembershipController.deleteUserMembership);
+exports.default = router;

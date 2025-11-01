@@ -25,6 +25,7 @@ const sales_service_1 = require("./sales.service");
 const day_close_model_1 = require("../day-close-report/day-close.model");
 const day_sales_model_1 = require("../day-close-report/day-sales.model");
 const auth_model_1 = require("../auth/auth.model");
+const order_model_1 = require("../order/order.model");
 // Default timezone for date operations
 const DEFAULT_TIMEZONE = 'Asia/Dubai';
 /**
@@ -112,6 +113,38 @@ const calculateShiftDates = (startTime, endTime, timezone = DEFAULT_TIMEZONE) =>
 const isDayClosed = (date, branchId) => __awaiter(void 0, void 0, void 0, function* () {
     const dayClosedShift = yield shift_model_1.Shift.findOne(Object.assign({ status: 'day-close', startDate: date }, (branchId ? { branchId } : {})));
     return !!dayClosedShift;
+});
+/**
+ * Checks for unpaid orders on a specific date
+ * @param date - Date to check (YYYY-MM-DD format)
+ * @param branchId - Branch ID to check
+ * @returns Promise<{hasUnpaidOrders: boolean, unpaidOrders: any[]}> - Object containing unpaid orders info
+ */
+const checkUnpaidOrders = (date, branchId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Create date range for the entire day
+        const startOfDay = new Date(date + 'T00:00:00.000Z');
+        const endOfDay = new Date(date + 'T23:59:59.999Z');
+        const filter = {
+            date: { $gte: startOfDay, $lte: endOfDay },
+            status: 'unpaid',
+            canceled: { $ne: true }, // Exclude canceled orders
+            isDeleted: { $ne: true } // Exclude deleted orders
+        };
+        if (branchId)
+            filter.branchId = branchId;
+        const unpaidOrders = yield order_model_1.Order.find(filter)
+            .select('_id invoiceNo orderNo customer total payableAmount dueAmount date')
+            .lean();
+        return {
+            hasUnpaidOrders: unpaidOrders.length > 0,
+            unpaidOrders: unpaidOrders
+        };
+    }
+    catch (error) {
+        console.error('Error checking unpaid orders:', error);
+        return { hasUnpaidOrders: false, unpaidOrders: [] };
+    }
 });
 /**
  * Serializes a shift document for API response
@@ -492,7 +525,7 @@ exports.closeShift = closeShift;
  * @param res - Express response object
  */
 const dayClose = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
     try {
         const payload = shift_validation_1.dayCloseActionValidation.parse(req.body || {});
         const reqUser = req;
@@ -534,6 +567,31 @@ const dayClose = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     closedBy: shift.closedBy,
                     note: shift.note
                 }))
+            });
+            return;
+        }
+        // Check for unpaid orders before allowing day close
+        const unpaidOrdersCheck = yield checkUnpaidOrders(currentDate, branchId);
+        if (unpaidOrdersCheck.hasUnpaidOrders) {
+            res.status(400).json({
+                success: false,
+                statusCode: 400,
+                message: 'Cannot close the day. There are unpaid orders that need to be settled first.',
+                unpaidOrdersCount: unpaidOrdersCheck.unpaidOrders.length,
+                unpaidOrders: unpaidOrdersCheck.unpaidOrders.map(order => {
+                    var _a;
+                    return ({
+                        id: order._id,
+                        invoiceNo: order.invoiceNo,
+                        orderNo: order.orderNo,
+                        customerName: ((_a = order.customer) === null || _a === void 0 ? void 0 : _a.name) || 'N/A',
+                        total: order.total,
+                        payableAmount: order.payableAmount,
+                        dueAmount: order.dueAmount,
+                        date: order.date
+                    });
+                }),
+                actionRequired: 'Please mark all orders as paid before closing the day'
             });
             return;
         }
@@ -604,6 +662,10 @@ const dayClose = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 dayCloseTime: now.toISOString(),
                 closedBy: userId,
                 daySales: daySalesData,
+                membershipBreakdown: {
+                    membershipMeal: ((_c = daySalesData === null || daySalesData === void 0 ? void 0 : daySalesData.membershipBreakdown) === null || _c === void 0 ? void 0 : _c.membershipMeal) || 0,
+                    membershipRegister: ((_d = daySalesData === null || daySalesData === void 0 ? void 0 : daySalesData.membershipBreakdown) === null || _d === void 0 ? void 0 : _d.membershipRegister) || 0
+                },
                 summary: {
                     dayWise: {
                         totalOrders: (daySalesData === null || daySalesData === void 0 ? void 0 : daySalesData.totalOrders) || 0,
@@ -639,6 +701,10 @@ const dayClose = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 card: 0,
                 online: 0
             },
+            membershipBreakdown: {
+                membershipMeal: 0,
+                membershipRegister: 0
+            },
             shifts: [] // Array to store IShiftSalesSummary
         };
         // Close all shifts for the current day
@@ -665,9 +731,11 @@ const dayClose = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             if (shift.sales) {
                 shiftWiseTotals.totalOrders += shift.sales.totalOrders || 0;
                 shiftWiseTotals.totalSales += shift.sales.totalSales || 0;
-                shiftWiseTotals.totalPayments.cash += ((_c = shift.sales.payments) === null || _c === void 0 ? void 0 : _c.cash) || 0;
-                shiftWiseTotals.totalPayments.card += ((_d = shift.sales.payments) === null || _d === void 0 ? void 0 : _d.card) || 0;
-                shiftWiseTotals.totalPayments.online += ((_e = shift.sales.payments) === null || _e === void 0 ? void 0 : _e.online) || 0;
+                shiftWiseTotals.totalPayments.cash += ((_e = shift.sales.payments) === null || _e === void 0 ? void 0 : _e.cash) || 0;
+                shiftWiseTotals.totalPayments.card += ((_f = shift.sales.payments) === null || _f === void 0 ? void 0 : _f.card) || 0;
+                shiftWiseTotals.totalPayments.online += ((_g = shift.sales.payments) === null || _g === void 0 ? void 0 : _g.online) || 0;
+                shiftWiseTotals.membershipBreakdown.membershipMeal += ((_h = shift.sales.membershipBreakdown) === null || _h === void 0 ? void 0 : _h.membershipMeal) || 0;
+                shiftWiseTotals.membershipBreakdown.membershipRegister += ((_j = shift.sales.membershipBreakdown) === null || _j === void 0 ? void 0 : _j.membershipRegister) || 0;
                 shiftWiseTotals.shifts.push({
                     shiftId: shift._id.toString(),
                     shiftNumber: shift.shiftNumber,
@@ -718,6 +786,10 @@ const dayClose = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             closedBy: userId,
             daySales: daySalesData,
             shiftWiseTotals: shiftWiseTotals,
+            membershipBreakdown: {
+                membershipMeal: ((_k = daySalesData === null || daySalesData === void 0 ? void 0 : daySalesData.membershipBreakdown) === null || _k === void 0 ? void 0 : _k.membershipMeal) || 0,
+                membershipRegister: ((_l = daySalesData === null || daySalesData === void 0 ? void 0 : daySalesData.membershipBreakdown) === null || _l === void 0 ? void 0 : _l.membershipRegister) || 0
+            },
             summary: {
                 dayWise: {
                     totalOrders: (daySalesData === null || daySalesData === void 0 ? void 0 : daySalesData.totalOrders) || 0,

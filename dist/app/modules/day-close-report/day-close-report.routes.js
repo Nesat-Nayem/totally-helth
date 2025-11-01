@@ -61,5 +61,5 @@ router.get('/thermal/:date', (0, authMiddleware_1.auth)('admin'), day_close_repo
  * @desc Generate thermal receipt data in JSON format for frontend processing
  * @access Admin
  */
-router.get('/thermal-json/:date', (0, authMiddleware_1.auth)('admin'), day_close_report_controller_1.generateThermalReceiptJson);
+router.get('/thermal-json/:date', day_close_report_controller_1.generateThermalReceiptJson);
 exports.dayCloseReportRouter = router;
