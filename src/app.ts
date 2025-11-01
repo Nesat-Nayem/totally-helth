@@ -17,7 +17,7 @@ setupSwagger(app);
 // Global access control - applies to all routes
 app.use(globalAccessControl());
 
-// application routes
+// application route
 app.use('/v1/api', router)
 
 const entryRoute = (req:Request, res:Response)=>{

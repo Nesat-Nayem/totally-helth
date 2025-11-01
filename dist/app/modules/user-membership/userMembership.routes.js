@@ -61,7 +61,7 @@ const router = (0, express_1.Router)();
  *         name: status
  *         schema:
  *           type: string
- *           enum: [active, expired, cancelled, completed]
+ *           enum: [active, hold, cancelled, completed]
  *         description: Filter by status
  *       - in: query
  *         name: page
@@ -130,9 +130,7 @@ const router = (0, express_1.Router)();
  *                 type: number
  *               status:
  *                 type: string
- *                 enum: [active, expired, cancelled, completed]
- *               isActive:
- *                 type: boolean
+ *                 enum: [active, hold, cancelled, completed]
  *     responses:
  *       200:
  *         description: User membership updated successfully
@@ -180,6 +178,12 @@ router.get('/', userMembership_controller_1.UserMembershipController.getUserMemb
 router.get('/:id', userMembership_controller_1.UserMembershipController.getUserMembership);
 // Update user membership
 router.put('/:id', userMembership_controller_1.UserMembershipController.updateUserMembership);
+// Set membership status (active/hold/cancelled)
+router.patch('/:id/status', userMembership_controller_1.UserMembershipController.setMembershipStatus);
+// Punch meals for a specific week and day
+router.post('/:id/punch', userMembership_controller_1.UserMembershipController.punchMeals);
+// Update meal selections for a specific week and day (only if not consumed)
+router.patch('/:id/update-meal-selections', userMembership_controller_1.UserMembershipController.updateMealSelections);
 // Delete user membership
 router.delete('/:id', userMembership_controller_1.UserMembershipController.deleteUserMembership);
 exports.default = router;
