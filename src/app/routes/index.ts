@@ -24,6 +24,7 @@ import { shiftRouter } from "../modules/shift/shift.routes";
 import { menuCategoryRouter } from "../modules/menu-category/menuCategory.routes";
 import { menuRouter } from "../modules/menu/menu.routes";
 import userMembershipRouter from "../modules/user-membership/userMembership.routes";
+import { includedRouter } from "../modules/included/included.routes";
 
 const router = Router();
 const moduleRoutes = [
@@ -139,6 +140,10 @@ const moduleRoutes = [
   {
     path: "/user-memberships",
     route: userMembershipRouter,
+  },
+  {
+    path: "/included",
+    route: includedRouter,
   },
 ];
 

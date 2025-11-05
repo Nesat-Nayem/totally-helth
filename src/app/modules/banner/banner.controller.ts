@@ -88,7 +88,11 @@ export const getAllBanners = async (
       filter.status = status;
     }
 
-    const banners = await Banner.find(filter).sort({ order: 1, createdAt: -1 });
+    // Sort by createdAt descending (newest first), then by order ascending
+    // This ensures newly created banners appear at the top of the list
+    const banners = await Banner.find(filter)
+      .sort({ createdAt: -1, order: 1 })
+      .lean();
     
     if (banners.length === 0) {
        res.json({
