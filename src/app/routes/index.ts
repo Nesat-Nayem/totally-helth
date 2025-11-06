@@ -25,6 +25,7 @@ import { menuCategoryRouter } from "../modules/menu-category/menuCategory.routes
 import { menuRouter } from "../modules/menu/menu.routes";
 import userMembershipRouter from "../modules/user-membership/userMembership.routes";
 import { includedRouter } from "../modules/included/included.routes";
+import { counterPageRouter } from "../modules/counter-page/counterPage.routes";
 
 const router = Router();
 const moduleRoutes = [
@@ -144,6 +145,10 @@ const moduleRoutes = [
   {
     path: "/included",
     route: includedRouter,
+  },
+  {
+    path: "/counter-page",
+    route: counterPageRouter,
   },
 ];
 
