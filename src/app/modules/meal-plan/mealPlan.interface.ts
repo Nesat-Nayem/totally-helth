@@ -54,6 +54,7 @@ export interface IMealPlan extends Document {
   durationDays?: number; // Duration of the plan in days
   status: 'active' | 'inactive';
   isDeleted: boolean;
+  showOnClient: boolean; // Whether to show this meal plan on client side
   createdAt: Date;
   updatedAt: Date;
   // New minimal fields for structured meal plans

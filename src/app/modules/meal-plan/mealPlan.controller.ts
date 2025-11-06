@@ -33,6 +33,7 @@ export const createMealPlan = async (req: Request, res: Response, next: NextFunc
       images: images.length ? images : undefined,
       thumbnail: thumbnail,
       status: body.status === 'inactive' ? 'inactive' : 'active',
+      showOnClient: body.showOnClient !== undefined ? parseBoolean(body.showOnClient) : true,
     } as any;
 
     const validated = mealPlanValidation.parse(payload);
@@ -133,6 +134,7 @@ export const updateMealPlanById = async (req: Request, res: Response, next: Next
     if (body.weeksOffers !== undefined) updateData.weeksOffers = ensureWeekOffers(body.weeksOffers);
     if (body.weeks !== undefined) updateData.weeks = ensureWeeks(body.weeks);
     if (body.status !== undefined) updateData.status = body.status === 'inactive' ? 'inactive' : 'active';
+    if (body.showOnClient !== undefined) updateData.showOnClient = parseBoolean(body.showOnClient);
     if (body.totalMeals !== undefined) updateData.totalMeals = Number(body.totalMeals);
     if (body.durationDays !== undefined) updateData.durationDays = Number(body.durationDays);
 
@@ -180,6 +182,15 @@ export const deleteMealPlanById = async (req: Request, res: Response, next: Next
 };
 
 // helpers
+function parseBoolean(input: any): boolean {
+  if (typeof input === 'boolean') return input;
+  if (typeof input === 'string') {
+    const lower = input.toLowerCase().trim();
+    return lower === 'true' || lower === '1';
+  }
+  return Boolean(input);
+}
+
 function ensureArray(input: any): string[] {
   if (Array.isArray(input)) return input.map(String).filter((s) => s?.length);
   if (typeof input === 'string') {

@@ -45,6 +45,7 @@
     images: z.array(z.string().min(1)).optional(),
     thumbnail: z.string().optional(),
     status: z.enum(['active', 'inactive']).default('active'),
+    showOnClient: z.boolean().default(true),
     // New fields
     weeks: z.array(weekMealPlanSchema).optional(),
   });
