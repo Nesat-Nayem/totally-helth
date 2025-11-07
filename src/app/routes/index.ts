@@ -26,6 +26,8 @@ import { menuRouter } from "../modules/menu/menu.routes";
 import userMembershipRouter from "../modules/user-membership/userMembership.routes";
 import { includedRouter } from "../modules/included/included.routes";
 import { counterPageRouter } from "../modules/counter-page/counterPage.routes";
+import { compareRouter } from "../modules/compare/compare.routes";
+import { testimonialRouter } from "../modules/testimonial/testimonial.routes";
 
 const router = Router();
 const moduleRoutes = [
@@ -149,6 +151,14 @@ const moduleRoutes = [
   {
     path: "/counter-page",
     route: counterPageRouter,
+  },
+  {
+    path: "/compare",
+    route: compareRouter,
+  },
+  {
+    path: "/testimonials",
+    route: testimonialRouter,
   },
 ];
 

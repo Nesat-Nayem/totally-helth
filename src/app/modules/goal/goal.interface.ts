@@ -14,7 +14,6 @@ export interface IGoal extends Document {
   metaDescription: string;
   metaKeywords: string;
   status: 'active' | 'inactive';
-  order: number;
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;

@@ -14,7 +14,6 @@ export const goalCreateValidation = z.object({
   metaDescription: z.string().min(1, 'Meta description is required'),
   metaKeywords: z.string().min(1, 'Meta keywords are required'),
   status: z.enum(['active', 'inactive']).default('active'),
-  order: z.number().optional(),
 });
 
 export const goalUpdateValidation = z.object({
@@ -25,5 +24,4 @@ export const goalUpdateValidation = z.object({
   metaDescription: z.string().min(1).optional(),
   metaKeywords: z.string().min(1).optional(),
   status: z.enum(['active', 'inactive']).optional(),
-  order: z.number().optional(),
 });
