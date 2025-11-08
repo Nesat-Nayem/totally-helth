@@ -28,6 +28,8 @@ import { includedRouter } from "../modules/included/included.routes";
 import { counterPageRouter } from "../modules/counter-page/counterPage.routes";
 import { compareRouter } from "../modules/compare/compare.routes";
 import { testimonialRouter } from "../modules/testimonial/testimonial.routes";
+import { mealPlanWorkRouter } from "../modules/meal-plan-work/mealPlanWork.routes";
+import { whyChooseRouter } from "../modules/why-choose/whyChoose.routes";
 
 const router = Router();
 const moduleRoutes = [
@@ -159,6 +161,14 @@ const moduleRoutes = [
   {
     path: "/testimonials",
     route: testimonialRouter,
+  },
+  {
+    path: "/meal-plan-work",
+    route: mealPlanWorkRouter,
+  },
+  {
+    path: "/why-choose",
+    route: whyChooseRouter,
   },
 ];
 
