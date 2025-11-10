@@ -15,10 +15,10 @@ const router = express.Router();
 router.post('/', auth(), createFAQ);
 
 // Get all FAQs
-router.get('/', auth(), getAllFAQs);
+router.get('/', getAllFAQs);
 
 // Get a single FAQ by ID
-router.get('/:id', auth(), getFAQById);
+router.get('/:id', getFAQById);
 
 // Update a FAQ by ID
 router.put('/:id', auth(), updateFAQById);

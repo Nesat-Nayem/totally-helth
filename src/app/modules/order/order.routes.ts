@@ -10,13 +10,13 @@ router.post('/', auth(), dayCloseMiddleware, createOrder);
 
 
 // List orders
-router.get('/', auth(), getOrders);
+router.get('/', getOrders);
 
 // Get paid orders for today
-router.get('/today/paid', auth(), getPaidOrdersToday);
+router.get('/today/paid', getPaidOrdersToday);
 
 // Get unpaid orders for today
-router.get('/today/unpaid', auth(), getUnpaidOrdersToday);
+router.get('/today/unpaid', getUnpaidOrdersToday);
 
 // Membership hold/unhold
 router.post('/:id/membership/hold', auth(), holdMembership);
@@ -26,7 +26,7 @@ router.post('/:id/membership/unhold', auth(), unholdMembership);
 router.post('/:id/cancel', auth(), cancelOrder);
 
 // Get by id
-router.get('/:id', auth(), getOrderById);
+router.get('/:id', getOrderById);
 
 // Update
 router.put('/:id', auth(), updateOrderById);

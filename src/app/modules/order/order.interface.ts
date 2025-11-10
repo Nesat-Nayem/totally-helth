@@ -26,6 +26,8 @@ export interface IOrder extends Document {
   total: number;
   vatPercent?: number;
   vatAmount?: number;
+  basePriceWithoutVAT?: number;
+  totalWithVAT?: number;
   discountType?: 'flat' | 'percent';
   discountAmount?: number;
   shippingCharge?: number;

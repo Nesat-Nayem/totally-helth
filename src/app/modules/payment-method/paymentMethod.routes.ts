@@ -4,8 +4,8 @@ import { createPaymentMethod, deletePaymentMethod, getPaymentMethodById, getPaym
 
 const router = express.Router();
 
-router.get('/', auth(), getPaymentMethods);
-router.get('/:id', auth(), getPaymentMethodById);
+router.get('/', getPaymentMethods);
+router.get('/:id', getPaymentMethodById);
 router.post('/', auth(), createPaymentMethod);
 router.patch('/:id', auth(), updatePaymentMethod);
 router.delete('/:id', auth(), deletePaymentMethod);

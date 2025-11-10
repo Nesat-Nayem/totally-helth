@@ -4,8 +4,8 @@ import { createMoreOption, deleteMoreOption, getMoreOptionById, getMoreOptions, 
 
 const router = express.Router();
 
-router.get('/', auth(), getMoreOptions);
-router.get('/:id', auth(), getMoreOptionById);
+router.get('/', getMoreOptions);
+router.get('/:id', getMoreOptionById);
 router.post('/', auth(), createMoreOption);
 router.patch('/:id', auth(), updateMoreOption);
 router.delete('/:id', auth(), deleteMoreOption);
