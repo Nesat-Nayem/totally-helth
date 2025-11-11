@@ -21,6 +21,7 @@ router.get('/cash', getCashExpenses);
 router.get('/:id', getExpenseById);
 router.post('/', auth(), createExpense);
 router.patch('/:id', auth(), updateExpense);
+router.put('/:id', auth(), updateExpense);
 router.delete('/:id', auth(), deleteExpense);
 
 export const expenseRouter = router;

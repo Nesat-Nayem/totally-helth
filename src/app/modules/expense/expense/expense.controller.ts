@@ -52,11 +52,22 @@ export const createExpense = async (req: Request, res: Response): Promise<void> 
 
 export const getExpenses = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { paymentMethod, month, year } = req.query;
+    const { paymentMethod, month, year, q, search } = req.query;
     const query: any = {};
     
     if (paymentMethod) {
       query.paymentMethod = paymentMethod;
+    }
+    
+    // Search functionality - search by invoiceId, description, paymentReferenceNo, notes
+    const searchTerm = q || search;
+    if (searchTerm) {
+      query.$or = [
+        { invoiceId: { $regex: searchTerm as string, $options: 'i' } },
+        { description: { $regex: searchTerm as string, $options: 'i' } },
+        { paymentReferenceNo: { $regex: searchTerm as string, $options: 'i' } },
+        { notes: { $regex: searchTerm as string, $options: 'i' } },
+      ];
     }
     
     if (month || year) {
@@ -98,7 +109,42 @@ export const getExpenseById = async (req: Request, res: Response): Promise<void>
 
 export const updateExpense = async (req: Request, res: Response): Promise<void> => {
   try {
-    const payload = expenseUpdateValidation.parse(req.body);
+    // Clean up empty strings and handle ObjectId fields
+    const cleanedBody: any = {};
+    Object.keys(req.body).forEach((key) => {
+      const value = req.body[key];
+      
+      // Handle empty strings for optional text fields
+      if (value === '' || value === null || value === undefined) {
+        if (['description', 'paymentReferenceNo', 'notes'].includes(key)) {
+          cleanedBody[key] = '';
+        }
+        // Skip other empty values - don't include them in update
+        return;
+      }
+      
+      // Handle ObjectId fields - extract _id if it's an object
+      if (['expenseType', 'supplier', 'approvedBy'].includes(key)) {
+        if (typeof value === 'object' && value !== null) {
+          // If it's an object with _id, use that
+          if (value._id) {
+            cleanedBody[key] = String(value._id);
+          } else if (value.id) {
+            cleanedBody[key] = String(value.id);
+          }
+          // If object doesn't have _id or id, skip it
+        } else if (typeof value === 'string' && value.length > 0) {
+          cleanedBody[key] = value;
+        }
+        // Skip if value doesn't match expected format
+        return;
+      }
+      
+      // Handle other fields - include all non-empty values
+      cleanedBody[key] = value;
+    });
+
+    const payload = expenseUpdateValidation.parse(cleanedBody);
     
     // Recalculate amounts if baseAmount, taxPercent, or vatPercent changed
     const existing = await Expense.findById(req.params.id);
@@ -120,14 +166,21 @@ export const updateExpense = async (req: Request, res: Response): Promise<void> 
         : payload.invoiceDate;
     }
     
-    const updateData = {
+    const updateData: any = {
       ...payload,
       taxAmount,
       vatAmount,
       grandTotal,
     };
     
-    const updated = await Expense.findByIdAndUpdate(req.params.id, updateData, { new: true })
+    // Remove undefined values to avoid overwriting with undefined
+    Object.keys(updateData).forEach((key) => {
+      if (updateData[key] === undefined) {
+        delete updateData[key];
+      }
+    });
+    
+    const updated = await Expense.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true })
       .populate('expenseType')
       .populate('supplier')
       .populate('approvedBy');
@@ -136,13 +189,27 @@ export const updateExpense = async (req: Request, res: Response): Promise<void> 
       res.status(404).json({ message: 'Expense not found' });
       return;
     }
-    res.json({ message: 'Expense updated', data: updated });
+    
+    res.status(200).json({ 
+      success: true,
+      message: 'Expense updated successfully', 
+      data: updated 
+    });
   } catch (err: any) {
     if (err instanceof ZodError) {
-      res.status(400).json({ message: err.issues?.[0]?.message || 'Validation error' });
+      const errorMessages = err.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join(', ');
+      res.status(400).json({ 
+        success: false,
+        message: 'Validation error', 
+        errors: err.issues,
+        details: errorMessages 
+      });
       return;
     }
-    res.status(500).json({ message: err?.message || 'Failed to update expense' });
+    res.status(500).json({ 
+      success: false,
+      message: err?.message || 'Failed to update expense' 
+    });
   }
 };
 
@@ -162,8 +229,19 @@ export const deleteExpense = async (req: Request, res: Response): Promise<void> 
 // Get credit expenses list
 export const getCreditExpenses = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { month, year } = req.query;
+    const { month, year, q, search } = req.query;
     const query: any = { paymentMethod: 'Credit' };
+    
+    // Search functionality - search by invoiceId, description, paymentReferenceNo, supplier name, etc.
+    const searchTerm = q || search;
+    if (searchTerm) {
+      query.$or = [
+        { invoiceId: { $regex: searchTerm as string, $options: 'i' } },
+        { description: { $regex: searchTerm as string, $options: 'i' } },
+        { paymentReferenceNo: { $regex: searchTerm as string, $options: 'i' } },
+        { notes: { $regex: searchTerm as string, $options: 'i' } },
+      ];
+    }
     
     if (month || year) {
       const yearNum = year ? parseInt(year as string) : new Date().getFullYear();
@@ -188,8 +266,19 @@ export const getCreditExpenses = async (req: Request, res: Response): Promise<vo
 // Get card expenses list
 export const getCardExpenses = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { month, year } = req.query;
+    const { month, year, q, search } = req.query;
     const query: any = { paymentMethod: 'Card' };
+    
+    // Search functionality - search by invoiceId, description, paymentReferenceNo, supplier name, etc.
+    const searchTerm = q || search;
+    if (searchTerm) {
+      query.$or = [
+        { invoiceId: { $regex: searchTerm as string, $options: 'i' } },
+        { description: { $regex: searchTerm as string, $options: 'i' } },
+        { paymentReferenceNo: { $regex: searchTerm as string, $options: 'i' } },
+        { notes: { $regex: searchTerm as string, $options: 'i' } },
+      ];
+    }
     
     if (month || year) {
       const yearNum = year ? parseInt(year as string) : new Date().getFullYear();
@@ -214,8 +303,19 @@ export const getCardExpenses = async (req: Request, res: Response): Promise<void
 // Get cash expenses list
 export const getCashExpenses = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { month, year } = req.query;
+    const { month, year, q, search } = req.query;
     const query: any = { paymentMethod: 'Cash' };
+    
+    // Search functionality - search by invoiceId, description, paymentReferenceNo, supplier name, etc.
+    const searchTerm = q || search;
+    if (searchTerm) {
+      query.$or = [
+        { invoiceId: { $regex: searchTerm as string, $options: 'i' } },
+        { description: { $regex: searchTerm as string, $options: 'i' } },
+        { paymentReferenceNo: { $regex: searchTerm as string, $options: 'i' } },
+        { notes: { $regex: searchTerm as string, $options: 'i' } },
+      ];
+    }
     
     if (month || year) {
       const yearNum = year ? parseInt(year as string) : new Date().getFullYear();

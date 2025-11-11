@@ -31,6 +31,7 @@ import { testimonialRouter } from "../modules/testimonial/testimonial.routes";
 import { mealPlanWorkRouter } from "../modules/meal-plan-work/mealPlanWork.routes";
 import { whyChooseRouter } from "../modules/why-choose/whyChoose.routes";
 import { expenseModuleRouter } from "../modules/expense/expense.routes";
+import { videoRouter } from "../modules/video/video.routes";
 
 const router = Router();
 const moduleRoutes = [
@@ -174,6 +175,10 @@ const moduleRoutes = [
   {
     path: "/expenses",
     route: expenseModuleRouter,
+  },
+  {
+    path: "/videos",
+    route: videoRouter,
   },
 ];
 
