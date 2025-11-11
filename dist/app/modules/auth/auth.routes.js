@@ -171,7 +171,7 @@ router.get("/users", (0, authMiddleware_1.auth)('admin'), auth_controller_1.getA
  *       404:
  *         description: User not found
  */
-router.get("/user/:id", (0, authMiddleware_1.auth)(), auth_controller_1.getUserById);
+router.get("/user/:id", auth_controller_1.getUserById);
 /**
  * @swagger
  * /v1/api/auth/reset-password:

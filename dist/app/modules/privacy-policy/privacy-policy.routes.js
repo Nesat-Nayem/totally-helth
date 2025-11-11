@@ -9,7 +9,7 @@ const privacy_policy_controller_1 = require("./privacy-policy.controller");
 const authMiddleware_1 = require("../../middlewares/authMiddleware");
 const router = express_1.default.Router();
 // Get privacy policy
-router.get('/', (0, authMiddleware_1.auth)(), privacy_policy_controller_1.getPrivacyPolicy);
+router.get('/', privacy_policy_controller_1.getPrivacyPolicy);
 // Update privacy policy
 router.put('/', (0, authMiddleware_1.auth)(), privacy_policy_controller_1.updatePrivacyPolicy);
 exports.privacyPolicyRouter = router;

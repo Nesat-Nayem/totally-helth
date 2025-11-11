@@ -42,6 +42,7 @@ exports.mealPlanValidation = zod_1.z.object({
     images: zod_1.z.array(zod_1.z.string().min(1)).optional(),
     thumbnail: zod_1.z.string().optional(),
     status: zod_1.z.enum(['active', 'inactive']).default('active'),
+    showOnClient: zod_1.z.boolean().default(true),
     // New fields
     weeks: zod_1.z.array(weekMealPlanSchema).optional(),
 });

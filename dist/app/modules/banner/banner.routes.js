@@ -11,7 +11,7 @@ const authMiddleware_1 = require("../../middlewares/authMiddleware");
 const router = express_1.default.Router();
 /**
  * @swagger
- * /banners:
+ * /v1/api/banners:
  *   post:
  *     summary: Create a banner
  *     tags:
@@ -64,7 +64,7 @@ const router = express_1.default.Router();
 router.post('/', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fields([{ name: 'file', maxCount: 1 }, { name: 'tag', maxCount: 1 }]), banner_controller_1.createBanner);
 /**
  * @swagger
- * /banners:
+ * /v1/api/banners:
  *   get:
  *     summary: Get all banners
  *     tags:
@@ -83,7 +83,7 @@ router.post('/', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fields
 router.get('/', banner_controller_1.getAllBanners);
 /**
  * @swagger
- * /banners/{id}:
+ * /v1/api/banners/{id}:
  *   get:
  *     summary: Get banner by ID
  *     tags:
@@ -103,7 +103,7 @@ router.get('/', banner_controller_1.getAllBanners);
 router.get('/:id', banner_controller_1.getBannerById);
 /**
  * @swagger
- * /banners/{id}:
+ * /v1/api/banners/{id}:
  *   put:
  *     summary: Update a banner
  *     tags:
@@ -156,7 +156,7 @@ router.get('/:id', banner_controller_1.getBannerById);
 router.put('/:id', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fields([{ name: 'file', maxCount: 1 }, { name: 'tag', maxCount: 1 }]), banner_controller_1.updateBannerById);
 /**
  * @swagger
- * /banners/{id}:
+ * /v1/api/banners/{id}:
  *   delete:
  *     summary: Delete (soft) a banner
  *     tags:

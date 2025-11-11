@@ -12,18 +12,18 @@ const router = express_1.default.Router();
 // Create order - check day close before allowing order creation
 router.post('/', (0, authMiddleware_1.auth)(), dayCloseMiddleware_1.dayCloseMiddleware, order_controller_1.createOrder);
 // List orders
-router.get('/', (0, authMiddleware_1.auth)(), order_controller_1.getOrders);
+router.get('/', order_controller_1.getOrders);
 // Get paid orders for today
-router.get('/today/paid', (0, authMiddleware_1.auth)(), order_controller_1.getPaidOrdersToday);
+router.get('/today/paid', order_controller_1.getPaidOrdersToday);
 // Get unpaid orders for today
-router.get('/today/unpaid', (0, authMiddleware_1.auth)(), order_controller_1.getUnpaidOrdersToday);
+router.get('/today/unpaid', order_controller_1.getUnpaidOrdersToday);
 // Membership hold/unhold
 router.post('/:id/membership/hold', (0, authMiddleware_1.auth)(), order_controller_1.holdMembership);
 router.post('/:id/membership/unhold', (0, authMiddleware_1.auth)(), order_controller_1.unholdMembership);
 // Cancel order
 router.post('/:id/cancel', (0, authMiddleware_1.auth)(), order_controller_1.cancelOrder);
 // Get by id
-router.get('/:id', (0, authMiddleware_1.auth)(), order_controller_1.getOrderById);
+router.get('/:id', order_controller_1.getOrderById);
 // Update
 router.put('/:id', (0, authMiddleware_1.auth)(), order_controller_1.updateOrderById);
 // Simple payment mode change - just pass payment mode, system handles the rest
