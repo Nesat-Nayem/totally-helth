@@ -29,6 +29,14 @@ const shift_routes_1 = require("../modules/shift/shift.routes");
 const menuCategory_routes_1 = require("../modules/menu-category/menuCategory.routes");
 const menu_routes_1 = require("../modules/menu/menu.routes");
 const userMembership_routes_1 = __importDefault(require("../modules/user-membership/userMembership.routes"));
+const included_routes_1 = require("../modules/included/included.routes");
+const counterPage_routes_1 = require("../modules/counter-page/counterPage.routes");
+const compare_routes_1 = require("../modules/compare/compare.routes");
+const testimonial_routes_1 = require("../modules/testimonial/testimonial.routes");
+const mealPlanWork_routes_1 = require("../modules/meal-plan-work/mealPlanWork.routes");
+const whyChoose_routes_1 = require("../modules/why-choose/whyChoose.routes");
+const expense_routes_1 = require("../modules/expense/expense.routes");
+const video_routes_1 = require("../modules/video/video.routes");
 const router = (0, express_1.Router)();
 const moduleRoutes = [
     {
@@ -130,6 +138,38 @@ const moduleRoutes = [
     {
         path: "/user-memberships",
         route: userMembership_routes_1.default,
+    },
+    {
+        path: "/included",
+        route: included_routes_1.includedRouter,
+    },
+    {
+        path: "/counter-page",
+        route: counterPage_routes_1.counterPageRouter,
+    },
+    {
+        path: "/compare",
+        route: compare_routes_1.compareRouter,
+    },
+    {
+        path: "/testimonials",
+        route: testimonial_routes_1.testimonialRouter,
+    },
+    {
+        path: "/meal-plan-work",
+        route: mealPlanWork_routes_1.mealPlanWorkRouter,
+    },
+    {
+        path: "/why-choose",
+        route: whyChoose_routes_1.whyChooseRouter,
+    },
+    {
+        path: "/expenses",
+        route: expense_routes_1.expenseModuleRouter,
+    },
+    {
+        path: "/videos",
+        route: video_routes_1.videoRouter,
     },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

@@ -64,6 +64,8 @@ exports.orderCreateValidation = zod_1.z.object({
     // extended fields
     vatPercent: zod_1.z.number().min(0).max(100).optional(),
     vatAmount: zod_1.z.number().min(0).optional(),
+    basePriceWithoutVAT: zod_1.z.number().min(0).optional(),
+    totalWithVAT: zod_1.z.number().min(0).optional(),
     discountType: zod_1.z.enum(['flat', 'percent']).optional(),
     discountAmount: zod_1.z.number().min(0).optional(),
     shippingCharge: zod_1.z.number().min(0).optional(),

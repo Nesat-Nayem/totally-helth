@@ -24,6 +24,14 @@ import { shiftRouter } from "../modules/shift/shift.routes";
 import { menuCategoryRouter } from "../modules/menu-category/menuCategory.routes";
 import { menuRouter } from "../modules/menu/menu.routes";
 import userMembershipRouter from "../modules/user-membership/userMembership.routes";
+import { includedRouter } from "../modules/included/included.routes";
+import { counterPageRouter } from "../modules/counter-page/counterPage.routes";
+import { compareRouter } from "../modules/compare/compare.routes";
+import { testimonialRouter } from "../modules/testimonial/testimonial.routes";
+import { mealPlanWorkRouter } from "../modules/meal-plan-work/mealPlanWork.routes";
+import { whyChooseRouter } from "../modules/why-choose/whyChoose.routes";
+import { expenseModuleRouter } from "../modules/expense/expense.routes";
+import { videoRouter } from "../modules/video/video.routes";
 
 const router = Router();
 const moduleRoutes = [
@@ -139,6 +147,38 @@ const moduleRoutes = [
   {
     path: "/user-memberships",
     route: userMembershipRouter,
+  },
+  {
+    path: "/included",
+    route: includedRouter,
+  },
+  {
+    path: "/counter-page",
+    route: counterPageRouter,
+  },
+  {
+    path: "/compare",
+    route: compareRouter,
+  },
+  {
+    path: "/testimonials",
+    route: testimonialRouter,
+  },
+  {
+    path: "/meal-plan-work",
+    route: mealPlanWorkRouter,
+  },
+  {
+    path: "/why-choose",
+    route: whyChooseRouter,
+  },
+  {
+    path: "/expenses",
+    route: expenseModuleRouter,
+  },
+  {
+    path: "/videos",
+    route: videoRouter,
   },
 ];
 

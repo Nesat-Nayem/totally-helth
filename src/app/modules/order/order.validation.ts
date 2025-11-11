@@ -72,6 +72,8 @@ export const orderCreateValidation = z.object({
   // extended fields
   vatPercent: z.number().min(0).max(100).optional(),
   vatAmount: z.number().min(0).optional(),
+  basePriceWithoutVAT: z.number().min(0).optional(),
+  totalWithVAT: z.number().min(0).optional(),
   discountType: z.enum(['flat', 'percent']).optional(),
   discountAmount: z.number().min(0).optional(),
   shippingCharge: z.number().min(0).optional(),

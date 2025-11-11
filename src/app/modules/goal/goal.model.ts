@@ -26,7 +26,6 @@ const GoalSchema: Schema = new Schema(
     metaDescription: { type: String, required: true, trim: true },
     metaKeywords: { type: String, required: true, trim: true },
     status: { type: String, enum: ['active', 'inactive'], default: 'active' },
-    order: { type: Number, default: 0 },
     isDeleted: { type: Boolean, default: false },
   },
   {

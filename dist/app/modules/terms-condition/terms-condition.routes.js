@@ -9,7 +9,7 @@ const terms_condition_controller_1 = require("./terms-condition.controller");
 const authMiddleware_1 = require("../../middlewares/authMiddleware");
 const router = express_1.default.Router();
 // Get privacy policy
-router.get('/', (0, authMiddleware_1.auth)(), terms_condition_controller_1.getTermsCondition);
+router.get('/', terms_condition_controller_1.getTermsCondition);
 // Update privacy policy
 router.put('/', (0, authMiddleware_1.auth)(), terms_condition_controller_1.updateTermsCondition);
 exports.TermsConditionRouter = router;

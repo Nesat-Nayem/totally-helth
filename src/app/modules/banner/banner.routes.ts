@@ -16,7 +16,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /banners:
+ * /v1/api/banners:
  *   post:
  *     summary: Create a banner
  *     tags:
@@ -70,7 +70,7 @@ router.post('/', auth('admin'), upload.fields([{ name: 'file', maxCount: 1 }, { 
 
 /**
  * @swagger
- * /banners:
+ * /v1/api/banners:
  *   get:
  *     summary: Get all banners
  *     tags:
@@ -90,7 +90,7 @@ router.get('/', getAllBanners);
 
 /**
  * @swagger
- * /banners/{id}:
+ * /v1/api/banners/{id}:
  *   get:
  *     summary: Get banner by ID
  *     tags:
@@ -111,7 +111,7 @@ router.get('/:id', getBannerById);
 
 /**
  * @swagger
- * /banners/{id}:
+ * /v1/api/banners/{id}:
  *   put:
  *     summary: Update a banner
  *     tags:
@@ -165,7 +165,7 @@ router.put('/:id', auth('admin'), upload.fields([{ name: 'file', maxCount: 1 }, 
 
 /**
  * @swagger
- * /banners/{id}:
+ * /v1/api/banners/{id}:
  *   delete:
  *     summary: Delete (soft) a banner
  *     tags:

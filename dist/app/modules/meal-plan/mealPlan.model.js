@@ -119,6 +119,7 @@ const MealPlanSchema = new mongoose_1.Schema({
     durationDays: { type: Number, min: 0 },
     status: { type: String, enum: ['active', 'inactive'], default: 'active' },
     isDeleted: { type: Boolean, default: false },
+    showOnClient: { type: Boolean, default: true },
     // New minimal fields for structured meal plans
     weeks: [WeekMealPlanSchema],
 }, {

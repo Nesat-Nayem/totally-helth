@@ -72,7 +72,11 @@ const getAllBanners = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         if (status === 'active' || status === 'inactive') {
             filter.status = status;
         }
-        const banners = yield banner_model_1.Banner.find(filter).sort({ order: 1, createdAt: -1 });
+        // Sort by createdAt descending (newest first), then by order ascending
+        // This ensures newly created banners appear at the top of the list
+        const banners = yield banner_model_1.Banner.find(filter)
+            .sort({ createdAt: -1, order: 1 })
+            .lean();
         if (banners.length === 0) {
             res.json({
                 success: true,

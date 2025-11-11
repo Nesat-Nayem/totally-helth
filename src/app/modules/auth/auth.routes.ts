@@ -182,7 +182,7 @@ router.get("/users", auth('admin'), getAllUsers);
  *       404:
  *         description: User not found
  */
-router.get("/user/:id", auth(), getUserById);
+router.get("/user/:id", getUserById);
 
 /**
  * @swagger

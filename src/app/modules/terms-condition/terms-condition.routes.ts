@@ -5,7 +5,7 @@ import { auth } from '../../middlewares/authMiddleware';
 const router = express.Router();
 
 // Get privacy policy
-router.get('/', auth(), getTermsCondition);
+router.get('/', getTermsCondition);
 
 // Update privacy policy
 router.put('/', auth(), updateTermsCondition);

@@ -30,9 +30,10 @@ const buildSectionsFromRequest = (req: Request) => {
   return sections;
 };
 
-export const createGoal = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+// Upsert function: creates if doesn't exist, updates if exists
+export const upsertGoal = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { title, subtitle, metaTitle, metaDescription, metaKeywords, status, order } = req.body as any;
+    const { title, subtitle, metaTitle, metaDescription, metaKeywords, status } = req.body as any;
 
     const sections = buildSectionsFromRequest(req);
     if (sections.length === 0) {
@@ -48,15 +49,25 @@ export const createGoal = async (req: Request, res: Response, next: NextFunction
       metaDescription,
       metaKeywords,
       status: status === 'inactive' ? 'inactive' : 'active',
-      order: order ? parseInt(order as string, 10) : 0,
     };
 
-    const validated = goalCreateValidation.parse(payload);
-    const goal = new Goal(validated);
-    await goal.save();
+    // Check if a goal already exists (not deleted)
+    const existingGoal = await Goal.findOne({ isDeleted: false });
 
-    res.status(201).json({ success: true, statusCode: 201, message: 'Goal created successfully', data: goal });
-    return;
+    if (existingGoal) {
+      // Update existing goal
+      const validated = goalUpdateValidation.parse(payload);
+      const updated = await Goal.findByIdAndUpdate(existingGoal._id, validated, { new: true });
+      res.json({ success: true, statusCode: 200, message: 'Goal updated successfully', data: updated });
+      return;
+    } else {
+      // Create new goal
+      const validated = goalCreateValidation.parse(payload);
+      const goal = new Goal(validated);
+      await goal.save();
+      res.status(201).json({ success: true, statusCode: 201, message: 'Goal created successfully', data: goal });
+      return;
+    }
   } catch (error) {
     // Cleanup uploaded icons on error
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
@@ -69,88 +80,22 @@ export const createGoal = async (req: Request, res: Response, next: NextFunction
   }
 };
 
-export const getAllGoals = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+// Get goal for frontend (returns single active goal or first available)
+export const getGoal = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { status } = req.query as { status?: string };
     const filter: any = { isDeleted: false };
     if (status === 'active' || status === 'inactive') filter.status = status;
-    const goals = await Goal.find(filter).sort({ order: 1, createdAt: -1 });
-    res.json({ success: true, statusCode: 200, message: 'Goals retrieved successfully', data: goals });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const getGoalById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const goal = await Goal.findOne({ _id: req.params.id, isDeleted: false });
+    
+    // Get the first active goal (since we're using upsert pattern, there should be one main goal)
+    const goal = await Goal.findOne(filter).sort({ createdAt: -1 });
+    
     if (!goal) {
-      next(new appError('Goal not found', 404));
+      res.json({ success: true, statusCode: 200, message: 'No goal found', data: null });
       return;
     }
+    
     res.json({ success: true, statusCode: 200, message: 'Goal retrieved successfully', data: goal });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const updateGoalById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const id = req.params.id;
-    const goal = await Goal.findOne({ _id: id, isDeleted: false });
-    if (!goal) {
-      next(new appError('Goal not found', 404));
-      return;
-    }
-
-    const updateData: any = {};
-    const { title, subtitle, metaTitle, metaDescription, metaKeywords, status, order } = req.body as any;
-    if (title !== undefined) updateData.title = title;
-    if (subtitle !== undefined) updateData.subtitle = subtitle;
-    if (metaTitle !== undefined) updateData.metaTitle = metaTitle;
-    if (metaDescription !== undefined) updateData.metaDescription = metaDescription;
-    if (metaKeywords !== undefined) updateData.metaKeywords = metaKeywords;
-    if (status !== undefined) updateData.status = status === 'inactive' ? 'inactive' : 'active';
-    if (order !== undefined) updateData.order = parseInt(order as string, 10);
-
-    // Handle section updates; if any section parts provided, rebuild sections array
-    const maybeSections = buildSectionsFromRequest(req);
-    if (maybeSections.length > 0) {
-      // Cleanup old icons if they are being replaced and new icons are provided
-      for (const s of maybeSections) {
-        // no safe way to detect which icon replaced which; skip deletion here
-      }
-      updateData.sections = maybeSections;
-    }
-
-    if (Object.keys(updateData).length === 0) {
-      res.json({ success: true, statusCode: 200, message: 'No changes to update', data: goal });
-      return;
-    }
-
-    const validated = goalUpdateValidation.parse(updateData);
-    const updated = await Goal.findByIdAndUpdate(id, validated, { new: true });
-    res.json({ success: true, statusCode: 200, message: 'Goal updated successfully', data: updated });
-  } catch (error) {
-    // cleanup newly uploaded icons on error
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
-    const paths = [files?.section1Icon?.[0]?.path, files?.section2Icon?.[0]?.path, files?.section3Icon?.[0]?.path].filter(Boolean) as string[];
-    for (const p of paths) {
-      const publicId = p.split('/').pop()?.split('.')[0];
-      if (publicId) await cloudinary.uploader.destroy(`restaurant-goals/${publicId}`);
-    }
-    next(error);
-  }
-};
-
-export const deleteGoalById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const goal = await Goal.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, { isDeleted: true }, { new: true });
-    if (!goal) {
-      next(new appError('Goal not found', 404));
-      return;
-    }
-    res.json({ success: true, statusCode: 200, message: 'Goal deleted successfully', data: goal });
   } catch (error) {
     next(error);
   }

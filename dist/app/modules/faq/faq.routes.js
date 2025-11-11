@@ -11,9 +11,9 @@ const router = express_1.default.Router();
 // Create a new FAQ
 router.post('/', (0, authMiddleware_1.auth)(), faq_controller_1.createFAQ);
 // Get all FAQs
-router.get('/', (0, authMiddleware_1.auth)(), faq_controller_1.getAllFAQs);
+router.get('/', faq_controller_1.getAllFAQs);
 // Get a single FAQ by ID
-router.get('/:id', (0, authMiddleware_1.auth)(), faq_controller_1.getFAQById);
+router.get('/:id', faq_controller_1.getFAQById);
 // Update a FAQ by ID
 router.put('/:id', (0, authMiddleware_1.auth)(), faq_controller_1.updateFAQById);
 // Delete a FAQ by ID

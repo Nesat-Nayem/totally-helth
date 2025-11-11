@@ -74,6 +74,8 @@ const OrderSchema = new mongoose_1.Schema({
     total: { type: Number, required: true, min: 0 },
     vatPercent: { type: Number, min: 0 },
     vatAmount: { type: Number, min: 0 },
+    basePriceWithoutVAT: { type: Number, min: 0 },
+    totalWithVAT: { type: Number, min: 0 },
     discountType: { type: String, enum: ['flat', 'percent'] },
     discountAmount: { type: Number, min: 0 },
     shippingCharge: { type: Number, min: 0 },

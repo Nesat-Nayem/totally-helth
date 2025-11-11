@@ -15,7 +15,6 @@ exports.goalCreateValidation = zod_1.z.object({
     metaDescription: zod_1.z.string().min(1, 'Meta description is required'),
     metaKeywords: zod_1.z.string().min(1, 'Meta keywords are required'),
     status: zod_1.z.enum(['active', 'inactive']).default('active'),
-    order: zod_1.z.number().optional(),
 });
 exports.goalUpdateValidation = zod_1.z.object({
     title: zod_1.z.string().min(1).optional(),
@@ -25,5 +24,4 @@ exports.goalUpdateValidation = zod_1.z.object({
     metaDescription: zod_1.z.string().min(1).optional(),
     metaKeywords: zod_1.z.string().min(1).optional(),
     status: zod_1.z.enum(['active', 'inactive']).optional(),
-    order: zod_1.z.number().optional(),
 });
