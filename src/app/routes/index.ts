@@ -32,6 +32,8 @@ import { mealPlanWorkRouter } from "../modules/meal-plan-work/mealPlanWork.route
 import { whyChooseRouter } from "../modules/why-choose/whyChoose.routes";
 import { expenseModuleRouter } from "../modules/expense/expense.routes";
 import { videoRouter } from "../modules/video/video.routes";
+import { logoRouter } from "../modules/logo/logo.routes";
+import { subscriptionRouter } from "../modules/subscription/subscription.routes";
 
 const router = Router();
 const moduleRoutes = [
@@ -179,6 +181,14 @@ const moduleRoutes = [
   {
     path: "/videos",
     route: videoRouter,
+  },
+  {
+    path: "/logos",
+    route: logoRouter,
+  },
+  {
+    path: "/subscriptions",
+    route: subscriptionRouter,
   },
 ];
 
