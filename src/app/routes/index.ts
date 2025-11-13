@@ -34,6 +34,9 @@ import { expenseModuleRouter } from "../modules/expense/expense.routes";
 import { videoRouter } from "../modules/video/video.routes";
 import { logoRouter } from "../modules/logo/logo.routes";
 import { subscriptionRouter } from "../modules/subscription/subscription.routes";
+import { aboutUsAuthorRouter } from "../modules/about-us/about-us-author.routes";
+import { aboutUsFoodRouter } from "../modules/about-us/about-us-food.routes";
+import { aboutUsDetailsRouter } from "../modules/about-us/about-us-details.routes";
 
 const router = Router();
 const moduleRoutes = [
@@ -189,6 +192,18 @@ const moduleRoutes = [
   {
     path: "/subscriptions",
     route: subscriptionRouter,
+  },
+  {
+    path: "/about-us/author",
+    route: aboutUsAuthorRouter,
+  },
+  {
+    path: "/about-us/food",
+    route: aboutUsFoodRouter,
+  },
+  {
+    path: "/about-us/details",
+    route: aboutUsDetailsRouter,
   },
 ];
 

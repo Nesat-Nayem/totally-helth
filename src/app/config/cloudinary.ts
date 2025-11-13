@@ -37,6 +37,8 @@ const storage = new CloudinaryStorage({
         return 'restaurant-compare';
       } else if (req.originalUrl.includes('/logos')) {
         return 'restaurant-logos';
+      } else if (req.originalUrl.includes('/about-us')) {
+        return 'about-us';
       }
       return 'restaurant-uploads';
     },
