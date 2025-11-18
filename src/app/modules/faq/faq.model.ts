@@ -13,11 +13,6 @@ const FAQSchema: Schema = new Schema(
       required: true,
       trim: true
     },
-    category: {
-      type: String,
-      trim: true,
-      default: 'General'
-    },
     order: {
       type: Number,
       default: 0

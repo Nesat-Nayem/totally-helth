@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import { FAQ } from "./faq.model";
 import { faqValidation, faqUpdateValidation } from "./faq.validation";
 import { appError } from "../../errors/appError";
-import { aiService } from "../../services/aiService";
 
 export const createFAQ = async (
   req: Request,
@@ -10,13 +9,12 @@ export const createFAQ = async (
   next: NextFunction
 ) => {
   try {
-    const { question, answer, category, order, isActive } = req.body;
+    const { question, answer, order, isActive } = req.body;
     
     // Validate the input
     const validatedData = faqValidation.parse({ 
       question, 
       answer,
-      category,
       order: order ? parseInt(order as string) : undefined,
       isActive: isActive === 'true' || isActive === true
     });
@@ -42,16 +40,15 @@ export const getAllFAQs = async (
   next: NextFunction
 ) => {
   try {
-    // Get only active FAQs if requested
-    const { active, category } = req.query;
+    // For frontend: only return active FAQs (when active=true)
+    // For admin: return all FAQs (when authenticated)
+    const { active } = req.query;
     const filter: any = { isDeleted: false };
     
+    // If active=true is passed, only return active FAQs (for frontend)
+    // Otherwise, return all FAQs (for admin)
     if (active === 'true') {
       filter.isActive = true;
-    }
-    
-    if (category) {
-      filter.category = category;
     }
     
     const faqs = await FAQ.find(filter).sort({ order: 1, createdAt: -1 });
@@ -77,32 +74,6 @@ export const getAllFAQs = async (
   }
 };
 
-export const getFAQById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const faq = await FAQ.findOne({ 
-      _id: req.params.id, 
-      isDeleted: false 
-    });
-    
-    if (!faq) {
-      return next(new appError("FAQ not found", 404));
-    }
-
-    res.json({
-      success: true,
-      statusCode: 200,
-      message: "FAQ retrieved successfully",
-      data: faq,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const updateFAQById = async (
   req: Request,
   res: Response,
@@ -110,7 +81,7 @@ export const updateFAQById = async (
 ) => {
   try {
     const faqId = req.params.id;
-    const { question, answer, category, order, isActive } = req.body;
+    const { question, answer, order, isActive } = req.body;
     
     // Find the FAQ to update
     const faq = await FAQ.findOne({ 
@@ -131,10 +102,6 @@ export const updateFAQById = async (
     
     if (answer !== undefined) {
       updateData.answer = answer;
-    }
-    
-    if (category !== undefined) {
-      updateData.category = category;
     }
     
     if (order !== undefined) {
@@ -198,38 +165,6 @@ export const deleteFAQById = async (
       statusCode: 200,
       message: "FAQ deleted successfully",
       data: faq,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// Generate FAQ answer using AI
-export const generateFAQAnswer = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { question } = req.body;
-    
-    if (!question) {
-      return next(new appError("Question is required", 400));
-    }
-    
-    const prompt = `Generate a helpful, concise answer for this FAQ question: "${question}". 
-    The answer should be informative, friendly, and no more than 3-4 sentences.`;
-    
-    const generatedAnswer = await aiService.generateText(prompt);
-    
-    res.json({
-      success: true,
-      statusCode: 200,
-      message: "Answer generated successfully",
-      data: {
-        question,
-        answer: generatedAnswer
-      },
     });
   } catch (error) {
     next(error);

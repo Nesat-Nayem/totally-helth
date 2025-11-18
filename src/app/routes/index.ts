@@ -2,7 +2,7 @@ import { Router } from "express";
 import { authRouter } from "../modules/auth/auth.routes";
 import { categoryRouter } from "../modules/category/category.routes";
 import { bannerRouter } from "../modules/banner/banner.routes";
-import { contractRouter } from "../modules/contact/contract.routes";
+import { contactRouter } from "../modules/contact/contact.routes";
 import { saveCardRouter } from "../modules/savecard/savecard.routes";
 import { faqRouter } from "../modules/faq/faq.routes";
 import { privacyPolicyRouter } from "../modules/privacy-policy/privacy-policy.routes";
@@ -51,8 +51,8 @@ const moduleRoutes = [
   },
 
   {
-    path: "/contracts",
-    route: contractRouter,
+    path: "/contact",
+    route: contactRouter,
   },
 
   {
