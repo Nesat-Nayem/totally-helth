@@ -15,7 +15,6 @@ export const createOrUpdateAboutUsDetails = async (
     const { headline, description, services } = req.body;
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
     const imageFile = files?.image?.[0];
-    const iconFiles = files?.icons || [];
 
     // Check if record exists
     let existingDetails = await AboutUsDetails.findOne({ isDeleted: false });
@@ -54,39 +53,6 @@ export const createOrUpdateAboutUsDetails = async (
           
           // Process services array - this will REPLACE the entire services array
           if (Array.isArray(servs)) {
-            // Track which icon files have been used
-            let iconFileIndex = 0;
-            
-            // Create map of existing services by _id for quick lookup (to preserve icons)
-            const existingServiceMap = new Map();
-            existingDetails.services.forEach((s: any) => {
-              if (s._id) {
-                existingServiceMap.set(s._id.toString(), s);
-              }
-            });
-            
-            // Track which existing services are being kept (to delete icons of removed services)
-            const keptServiceIds = new Set(
-              servs
-                .map((s: any) => s._id?.toString())
-                .filter(Boolean)
-            );
-            
-            // Delete icons of services that are being removed
-            existingDetails.services.forEach((existingService: any) => {
-              const existingId = existingService._id?.toString();
-              // If service has _id and it's NOT in the request, it's being removed
-              if (existingId && !keptServiceIds.has(existingId)) {
-                // Delete icon from Cloudinary
-                if (existingService.icon && !existingService.icon.includes('placeholder')) {
-                  const publicId = existingService.icon.split('/').pop()?.split('.')[0];
-                  if (publicId) {
-                    cloudinary.uploader.destroy(`about-us/${publicId}`).catch(() => {});
-                  }
-                }
-              }
-            });
-            
             // Process each service from request - this becomes the final services array
             const finalServices: any[] = [];
             
@@ -96,69 +62,10 @@ export const createOrUpdateAboutUsDetails = async (
                 return;
               }
               
-              let iconValue = '';
-              let oldIconToDelete = null;
-              
-              // Find existing service by _id if provided
-              const existingService = serv._id 
-                ? existingServiceMap.get(serv._id.toString())
-                : null;
-              
-              // Check if valid icon URL is provided in request
-              const providedIcon = serv.icon && typeof serv.icon === 'string' 
-                ? serv.icon.trim() 
-                : '';
-              
-              const hasValidIconUrl = providedIcon !== '' && 
-                providedIcon !== '""' && 
-                providedIcon !== 'null' &&
-                !providedIcon.includes('placeholder') &&
-                (providedIcon.startsWith('http') || providedIcon.startsWith('/'));
-              
-              // Check if existing service has valid icon
-              const hasValidExistingIcon = existingService?.icon && 
-                typeof existingService.icon === 'string' &&
-                !existingService.icon.includes('placeholder') &&
-                (existingService.icon.startsWith('http') || existingService.icon.startsWith('/'));
-              
-              // Determine icon value with priority: new upload > provided URL > existing icon
-              // IMPORTANT: Only consume icon file if service needs it (new service or updating existing without valid URL)
-              const needsIconFile = !serv._id || (!hasValidIconUrl && !hasValidExistingIcon);
-              
-              if (needsIconFile && iconFiles[iconFileIndex]?.path) {
-                // New icon file uploaded - use it (for new service or updating existing without valid icon)
-                if (existingService?.icon && !existingService.icon.includes('placeholder')) {
-                  oldIconToDelete = existingService.icon;
-                }
-                iconValue = iconFiles[iconFileIndex].path;
-                iconFileIndex++;
-              } else if (hasValidIconUrl) {
-                // Valid icon URL provided in request - use it (don't consume file)
-                iconValue = providedIcon;
-              } else if (hasValidExistingIcon) {
-                // Use existing icon from database (don't consume file)
-                iconValue = existingService.icon;
-              } else if (!serv._id) {
-                // New service without valid icon or file - skip it (can't create without icon)
-                return;
-              } else {
-                // Existing service being updated but no valid icon provided - keep existing
-                iconValue = existingService?.icon || '';
-              }
-              
-              // Delete old icon from Cloudinary if replacing
-              if (oldIconToDelete) {
-                const publicId = oldIconToDelete.split('/').pop()?.split('.')[0];
-                if (publicId) {
-                  cloudinary.uploader.destroy(`about-us/${publicId}`).catch(() => {});
-                }
-              }
-              
               // Add service to final array (either updated existing or new)
               const serviceToAdd: any = {
                 title: serv.title || '',
                 description: serv.description || '',
-                icon: iconValue,
               };
               
               // CRITICAL: Preserve _id if it exists (for updates), convert string to ObjectId for proper matching
@@ -177,16 +84,6 @@ export const createOrUpdateAboutUsDetails = async (
           } else if (servs === null || servs === '') {
             // Empty array or null means clear all services
             updateData.services = [];
-            
-            // Delete all existing service icons
-            existingDetails.services.forEach((existingService: any) => {
-              if (existingService.icon && !existingService.icon.includes('placeholder')) {
-                const publicId = existingService.icon.split('/').pop()?.split('.')[0];
-                if (publicId) {
-                  cloudinary.uploader.destroy(`about-us/${publicId}`).catch(() => {});
-                }
-              }
-            });
           }
         } catch (e: any) {
           // If services parsing fails, don't update services - preserve existing
@@ -247,39 +144,18 @@ export const createOrUpdateAboutUsDetails = async (
       }
 
       // Process services - optional for create
-      let servicesData: { title: string; description: string; icon: string }[] = [];
+      let servicesData: { title: string; description: string }[] = [];
       if (services) {
         try {
           const servs = typeof services === 'string' ? JSON.parse(services) : services;
           
           if (Array.isArray(servs) && servs.length > 0) {
-            let iconFileIndex = 0;
-            
             servicesData = servs.map((serv: any) => {
-              // For new services, icon must come from uploaded file or provided URL
-              const providedIcon = serv.icon && typeof serv.icon === 'string' 
-                ? serv.icon.trim() 
-                : '';
-              
-              const hasValidIconUrl = providedIcon !== '' && 
-                providedIcon !== '""' && 
-                providedIcon !== 'null' &&
-                !providedIcon.includes('placeholder') &&
-                (providedIcon.startsWith('http') || providedIcon.startsWith('/'));
-              
-              const iconValue = iconFiles[iconFileIndex]?.path || 
-                (hasValidIconUrl ? providedIcon : '');
-              
-              if (iconFiles[iconFileIndex]?.path) {
-                iconFileIndex++;
-              }
-              
               return {
                 title: serv.title || '',
                 description: serv.description || '',
-                icon: iconValue,
               };
-            }).filter(service => service.icon && service.icon.trim() !== ''); // Only include services with valid icons
+            }).filter(service => service.title && service.title.trim() !== ''); // Only include services with valid title
           }
         } catch (e: any) {
           // If services parsing fails, just create without services
@@ -310,13 +186,10 @@ export const createOrUpdateAboutUsDetails = async (
   } catch (error: any) {
     // Clean up uploaded files on error
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
-    const uploadedPaths = [
-      files?.image?.[0]?.path,
-      ...(files?.icons || []).map((f: Express.Multer.File) => f.path),
-    ].filter(Boolean) as string[];
+    const imagePath = files?.image?.[0]?.path;
     
-    for (const p of uploadedPaths) {
-      const publicId = p.split('/').pop()?.split('.')[0];
+    if (imagePath) {
+      const publicId = imagePath.split('/').pop()?.split('.')[0];
       if (publicId) {
         cloudinary.uploader.destroy(`about-us/${publicId}`).catch(() => {});
       }

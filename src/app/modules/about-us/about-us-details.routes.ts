@@ -11,8 +11,7 @@ const router = express.Router();
 
 // Admin routes (with authentication)
 router.post('/', auth('admin'), upload.fields([
-  { name: 'image', maxCount: 1 },
-  { name: 'icons', maxCount: 10 }
+  { name: 'image', maxCount: 1 }
 ]), createOrUpdateAboutUsDetails);
 router.get('/admin/all', auth('admin'), getAllAboutUsDetails);
 

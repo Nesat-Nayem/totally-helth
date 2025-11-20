@@ -3,7 +3,6 @@ import { z } from 'zod';
 const serviceSchema = z.object({
   title: z.string().min(1, 'Service title is required'),
   description: z.string().min(1, 'Service description is required'),
-  icon: z.string().min(1, 'Service icon is required'),
 }).passthrough(); // Allow additional fields like _id
 
 export const aboutUsDetailsValidation = z.object({

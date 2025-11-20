@@ -7,7 +7,6 @@ export interface IAboutUsDetails extends Document {
   services: {
     title: string;
     description: string;
-    icon: string;
   }[];
   isDeleted: boolean;
   createdAt: Date;

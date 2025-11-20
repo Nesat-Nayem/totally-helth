@@ -28,10 +28,6 @@ const AboutUsDetailsSchema: Schema = new Schema(
         required: true,
         trim: true,
       },
-      icon: {
-        type: String,
-        required: true,
-      },
     }],
     // Services array is optional - can be empty
     isDeleted: { 

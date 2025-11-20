@@ -38,6 +38,7 @@ import { aboutUsAuthorRouter } from "../modules/about-us/about-us-author.routes"
 import { aboutUsFoodRouter } from "../modules/about-us/about-us-food.routes";
 import { aboutUsDetailsRouter } from "../modules/about-us/about-us-details.routes";
 import { getInTouchRouter } from "../modules/get-in-touch/getInTouch.routes";
+import { restaurantLocationRouter } from "../modules/restaurant-location/restaurantLocation.routes";
 
 const router = Router();
 const moduleRoutes = [
@@ -209,6 +210,10 @@ const moduleRoutes = [
   {
     path: "/get-in-touch",
     route: getInTouchRouter,
+  },
+  {
+    path: "/restaurant-locations",
+    route: restaurantLocationRouter,
   },
 ];
 
