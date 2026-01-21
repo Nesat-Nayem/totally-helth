@@ -630,7 +630,7 @@ const setupSwagger = (app) => {
         res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
         res.send(specs);
     });
-    console.log('📚 Swagger documentation available at: http://localhost:8080/api-docs');
+    console.log('📚 Swagger documentation available at: https://totally-helth.vercel.app/api-docs');
 };
 exports.setupSwagger = setupSwagger;
 exports.default = specs;

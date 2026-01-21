@@ -637,7 +637,7 @@ export const setupSwagger = (app: Application): void => {
     res.send(specs);
   });
 
-  console.log('📚 Swagger documentation available at: http://localhost:8080/api-docs');
+  console.log('📚 Swagger documentation available at: https://totally-helth.vercel.app/api-docs');
 };
 
 export default specs;
