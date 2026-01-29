@@ -30,7 +30,7 @@ const options = {
                 description: 'Development server',
             },
             {
-                url: 'https://api.atpuae.com',
+                url: 'https://totallyhelth.atpuae.com',
                 description: 'Production server',
             },
         ],
