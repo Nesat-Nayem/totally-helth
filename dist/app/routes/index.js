@@ -37,6 +37,7 @@ const mealPlanWork_routes_1 = require("../modules/meal-plan-work/mealPlanWork.ro
 const whyChoose_routes_1 = require("../modules/why-choose/whyChoose.routes");
 const expense_routes_1 = require("../modules/expense/expense.routes");
 const video_routes_1 = require("../modules/video/video.routes");
+const aboutUs_routes_1 = require("../modules/about-us/aboutUs.routes");
 const router = (0, express_1.Router)();
 const moduleRoutes = [
     {
@@ -170,6 +171,10 @@ const moduleRoutes = [
     {
         path: "/videos",
         route: video_routes_1.videoRouter,
+    },
+    {
+        path: "/about-us",
+        route: aboutUs_routes_1.aboutUsRouter,
     },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

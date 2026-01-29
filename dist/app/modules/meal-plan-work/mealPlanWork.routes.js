@@ -17,7 +17,7 @@ const router = express_1.default.Router();
  */
 /**
  * @swagger
- * /meal-plan-work:
+ * /v1/api/meal-plan-work:
  *   post:
  *     summary: Create or update meal plan work (upsert) - First time creates, subsequent times updates
  *     description: Creates a new meal plan work record if none exists, otherwise updates the existing record
@@ -103,7 +103,7 @@ router.post('/', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fields
 ]), mealPlanWork_controller_1.upsertMealPlanWork);
 /**
  * @swagger
- * /meal-plan-work:
+ * /v1/api/meal-plan-work:
  *   get:
  *     summary: Get meal plan work data
  *     description: Retrieves the current meal plan work data (for admin and public/homepage)
@@ -123,7 +123,7 @@ router.post('/', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fields
 router.get('/', mealPlanWork_controller_1.getMealPlanWork);
 /**
  * @swagger
- * /meal-plan-work/{id}:
+ * /v1/api/meal-plan-work/{id}:
  *   get:
  *     summary: Get meal plan work by ID
  *     description: Retrieves a specific meal plan work document by ID (for admin)

@@ -175,9 +175,7 @@ const DaySalesSchema = new mongoose_1.Schema({
     timestamps: true,
     collection: 'daysales'
 });
-// Compound index for efficient queries
-DaySalesSchema.index({ date: 1, branchId: 1 }, { unique: true });
-// Ensure only one day sales record per date per branch
+// Compound index for efficient queries - ensures only one day sales record per date per branch
 DaySalesSchema.index({ date: 1, branchId: 1 }, { unique: true });
 /**
  * Day Sales Model

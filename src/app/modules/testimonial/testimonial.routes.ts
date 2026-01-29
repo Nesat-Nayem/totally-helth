@@ -20,7 +20,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /testimonials:
+ * /v1/api/testimonials:
  *   post:
  *     summary: Create a new testimonial (admin only)
  *     tags:
@@ -61,7 +61,7 @@ router.post('/', auth('admin'), createTestimonial);
 
 /**
  * @swagger
- * /testimonials:
+ * /v1/api/testimonials:
  *   get:
  *     summary: Get all testimonials (admin only)
  *     tags:
@@ -83,7 +83,7 @@ router.get('/', getAllTestimonials);
 
 /**
  * @swagger
- * /testimonials/{id}:
+ * /v1/api/testimonials/{id}:
  *   get:
  *     summary: Get testimonial by ID (admin only)
  *     tags:
@@ -106,7 +106,7 @@ router.get('/:id', getTestimonialById);
 
 /**
  * @swagger
- * /testimonials/{id}:
+ * /v1/api/testimonials/{id}:
  *   put:
  *     summary: Update testimonial (admin only)
  *     tags:
@@ -147,7 +147,7 @@ router.put('/:id', auth('admin'), updateTestimonial);
 
 /**
  * @swagger
- * /testimonials/{id}:
+ * /v1/api/testimonials/{id}:
  *   delete:
  *     summary: Delete testimonial (admin only)
  *     tags:
@@ -170,7 +170,7 @@ router.delete('/:id', auth('admin'), deleteTestimonial);
 
 /**
  * @swagger
- * /testimonials/public/active:
+ * /v1/api/testimonials/public/active:
  *   get:
  *     summary: Get active testimonials for frontend (public)
  *     tags:

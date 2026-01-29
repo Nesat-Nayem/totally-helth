@@ -14,7 +14,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /goals:
+ * /v1/api/goals:
  *   post:
  *     summary: Create or update goal (upsert) - First time creates, subsequent times updates
  *     tags:
@@ -83,7 +83,7 @@ router.post(
 
 /**
  * @swagger
- * /goals:
+ * /v1/api/goals:
  *   get:
  *     summary: Get goal for frontend (returns single active goal)
  *     tags:

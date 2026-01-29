@@ -14,7 +14,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /why-choose:
+ * /v1/api/why-choose:
  *   post:
  *     summary: Create or update why choose (upsert) - First time creates, subsequent times updates
  *     description: Creates a new why choose record if none exists, otherwise updates the existing record
@@ -102,7 +102,7 @@ router.post(
 
 /**
  * @swagger
- * /why-choose:
+ * /v1/api/why-choose:
  *   get:
  *     summary: Get why choose data
  *     description: Retrieves the current why choose data (for admin and public/homepage)
@@ -123,7 +123,7 @@ router.get('/', getWhyChoose);
 
 /**
  * @swagger
- * /why-choose/{id}:
+ * /v1/api/why-choose/{id}:
  *   get:
  *     summary: Get why choose by ID
  *     description: Retrieves a specific why choose document by ID (for admin)

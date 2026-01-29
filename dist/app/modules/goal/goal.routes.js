@@ -17,7 +17,7 @@ const router = express_1.default.Router();
  */
 /**
  * @swagger
- * /goals:
+ * /v1/api/goals:
  *   post:
  *     summary: Create or update goal (upsert) - First time creates, subsequent times updates
  *     tags:
@@ -80,7 +80,7 @@ router.post('/', (0, authMiddleware_1.auth)('admin'), cloudinary_1.upload.fields
 ]), goal_controller_1.upsertGoal);
 /**
  * @swagger
- * /goals:
+ * /v1/api/goals:
  *   get:
  *     summary: Get goal for frontend (returns single active goal)
  *     tags:

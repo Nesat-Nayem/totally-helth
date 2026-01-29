@@ -16,7 +16,7 @@ const router = express_1.default.Router();
  */
 /**
  * @swagger
- * /counter-page:
+ * /v1/api/counter-page:
  *   post:
  *     summary: Create or update counter page data (upsert)
  *     description: Creates a new counter page record if none exists, otherwise updates the existing record
@@ -63,7 +63,7 @@ const router = express_1.default.Router();
 router.post('/', (0, authMiddleware_1.auth)('admin'), counterPage_controller_1.upsertCounterPage);
 /**
  * @swagger
- * /counter-page:
+ * /v1/api/counter-page:
  *   get:
  *     summary: Get counter page data
  *     description: Retrieves the current counter page data

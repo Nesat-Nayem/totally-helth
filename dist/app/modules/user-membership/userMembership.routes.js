@@ -46,8 +46,6 @@ const router = (0, express_1.Router)();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *
- * /v1/api/user-memberships:
  *   get:
  *     summary: Get all user memberships
  *     tags: [User Memberships]
@@ -105,8 +103,6 @@ const router = (0, express_1.Router)();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *
- * /v1/api/user-memberships/{id}:
  *   put:
  *     summary: Update user membership
  *     tags: [User Memberships]
@@ -144,8 +140,6 @@ const router = (0, express_1.Router)();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *
- * /v1/api/user-memberships/{id}:
  *   delete:
  *     summary: Delete user membership
  *     tags: [User Memberships]

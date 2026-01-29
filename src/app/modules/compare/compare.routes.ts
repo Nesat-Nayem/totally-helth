@@ -14,7 +14,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /compare:
+ * /v1/api/compare:
  *   post:
  *     summary: Create or update compare (upsert) - First time creates, subsequent times updates
  *     tags:
@@ -62,7 +62,7 @@ router.post(
 
 /**
  * @swagger
- * /compare:
+ * /v1/api/compare:
  *   get:
  *     summary: Get compare for frontend (returns single active compare, banner2 as image1)
  *     tags:

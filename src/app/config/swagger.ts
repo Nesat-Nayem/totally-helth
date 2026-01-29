@@ -45,7 +45,6 @@ const options: swaggerJSDoc.Options = {
         name: 'Authentication',
         description: 'Authentication related endpoints',
       },
-
       {
         name: 'Users',
         description: 'User management endpoints',
@@ -57,6 +56,59 @@ const options: swaggerJSDoc.Options = {
       {
         name: 'User Memberships',
         description: 'User membership management endpoints',
+      },
+      // Homepage Sections (Pages)
+      {
+        name: 'Banners',
+        description: 'Home banner management for homepage hero section',
+      },
+      {
+        name: 'Goals',
+        description: 'Goal section management for homepage',
+      },
+      {
+        name: 'Brands',
+        description: 'Brand logos management for homepage brands section',
+      },
+      {
+        name: 'Meal Plan Work',
+        description: 'How Totally Healthy Meal Plans Work section management',
+      },
+      {
+        name: 'Counter Page',
+        description: 'Counter statistics section (Total Reviews, Meal Items, Happy Clients, Years)',
+      },
+      {
+        name: 'Compare',
+        description: 'Compare section management for homepage',
+      },
+      {
+        name: 'Why Choose',
+        description: 'Why Choose Totally Healthy section management',
+      },
+      {
+        name: 'Video',
+        description: 'Video area section management for homepage',
+      },
+      {
+        name: 'Testimonials',
+        description: 'Customer testimonials management for homepage',
+      },
+      {
+        name: 'Branches (Restaurants)',
+        description: 'Restaurant branches and locations management',
+      },
+      {
+        name: 'About Us',
+        description: 'About Us page management for homepage about section',
+      },
+      {
+        name: 'Restaurant Menus',
+        description: 'Restaurant menu items management',
+      },
+      {
+        name: 'Menu Categories',
+        description: 'Menu category management for restaurant menus',
       },
     ],
     components: {
@@ -204,6 +256,572 @@ const options: swaggerJSDoc.Options = {
             data: {
               type: 'object',
               description: 'Response data',
+            },
+          },
+        },
+        // Homepage Section Schemas
+        Brand: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Brand ID',
+            },
+            name: {
+              type: 'string',
+              description: 'Brand name',
+            },
+            logo: {
+              type: 'string',
+              description: 'Brand logo URL',
+            },
+            status: {
+              type: 'string',
+              enum: ['active', 'inactive'],
+              description: 'Brand status',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+          },
+        },
+        Branch: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Branch ID',
+            },
+            name: {
+              type: 'string',
+              description: 'Branch/Restaurant name',
+            },
+            location: {
+              type: 'string',
+              description: 'Branch location/address',
+            },
+            brand: {
+              type: 'string',
+              description: 'Associated brand name',
+            },
+            logo: {
+              type: 'string',
+              description: 'Branch logo URL',
+            },
+            status: {
+              type: 'string',
+              enum: ['active', 'inactive'],
+              description: 'Branch status',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+          },
+        },
+        Video: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Video ID',
+            },
+            brandLogo: {
+              type: 'string',
+              description: 'Brand logo URL for video section',
+            },
+            videoUrl: {
+              type: 'string',
+              description: 'YouTube or video embed URL',
+            },
+            status: {
+              type: 'string',
+              enum: ['active', 'inactive'],
+              description: 'Video section status',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+          },
+        },
+        Testimonial: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Testimonial ID',
+            },
+            quote: {
+              type: 'string',
+              description: 'Customer testimonial quote',
+            },
+            authorName: {
+              type: 'string',
+              description: 'Author name',
+            },
+            authorProfession: {
+              type: 'string',
+              description: 'Author profession/title',
+            },
+            order: {
+              type: 'number',
+              description: 'Display order',
+            },
+            status: {
+              type: 'string',
+              enum: ['active', 'inactive'],
+              description: 'Testimonial status',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+          },
+        },
+        Goal: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Goal ID',
+            },
+            title: {
+              type: 'string',
+              description: 'Goal section title',
+            },
+            subtitle: {
+              type: 'string',
+              description: 'Goal section subtitle',
+            },
+            section1Title: {
+              type: 'string',
+            },
+            section1Description: {
+              type: 'string',
+            },
+            section1Icon: {
+              type: 'string',
+              description: 'Section 1 icon URL',
+            },
+            section2Title: {
+              type: 'string',
+            },
+            section2Description: {
+              type: 'string',
+            },
+            section2Icon: {
+              type: 'string',
+              description: 'Section 2 icon URL',
+            },
+            section3Title: {
+              type: 'string',
+            },
+            section3Description: {
+              type: 'string',
+            },
+            section3Icon: {
+              type: 'string',
+              description: 'Section 3 icon URL',
+            },
+            status: {
+              type: 'string',
+              enum: ['active', 'inactive'],
+            },
+          },
+        },
+        CounterPage: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Counter page ID',
+            },
+            totalReviews: {
+              type: 'number',
+              description: 'Total reviews count',
+            },
+            totalMealItems: {
+              type: 'number',
+              description: 'Total meal items count',
+            },
+            happyClients: {
+              type: 'number',
+              description: 'Happy clients count',
+            },
+            yearsHelpingPeople: {
+              type: 'number',
+              description: 'Years helping people count',
+            },
+          },
+        },
+        Compare: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Compare ID',
+            },
+            title: {
+              type: 'string',
+              description: 'Compare section title',
+            },
+            banner1: {
+              type: 'string',
+              description: 'First comparison image URL',
+            },
+            banner2: {
+              type: 'string',
+              description: 'Second comparison image URL',
+            },
+            compareItems: {
+              type: 'array',
+              items: {
+                type: 'object',
+              },
+              description: 'Comparison items list',
+            },
+            status: {
+              type: 'string',
+              enum: ['active', 'inactive'],
+            },
+          },
+        },
+        WhyChoose: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Why Choose ID',
+            },
+            title: {
+              type: 'string',
+              description: 'Section title',
+            },
+            subTitle: {
+              type: 'string',
+              description: 'Section subtitle',
+            },
+            card1Icon: {
+              type: 'string',
+              description: 'Card 1 icon URL',
+            },
+            card1Title: {
+              type: 'string',
+            },
+            card1Items: {
+              type: 'array',
+              items: {
+                type: 'string',
+              },
+            },
+            card2Icon: {
+              type: 'string',
+              description: 'Card 2 icon URL',
+            },
+            card2Title: {
+              type: 'string',
+            },
+            card2Items: {
+              type: 'array',
+              items: {
+                type: 'string',
+              },
+            },
+            card3Icon: {
+              type: 'string',
+              description: 'Card 3 icon URL',
+            },
+            card3Title: {
+              type: 'string',
+            },
+            card3Items: {
+              type: 'array',
+              items: {
+                type: 'string',
+              },
+            },
+            status: {
+              type: 'string',
+              enum: ['active', 'inactive'],
+            },
+          },
+        },
+        MealPlanWork: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Meal Plan Work ID',
+            },
+            title: {
+              type: 'string',
+              description: 'Section title',
+            },
+            subtitle: {
+              type: 'string',
+              description: 'Section subtitle',
+            },
+            banner1: {
+              type: 'string',
+              description: 'Banner 1 image URL',
+            },
+            banner2: {
+              type: 'string',
+              description: 'Banner 2 image URL',
+            },
+            step1Title: {
+              type: 'string',
+            },
+            step1SubTitle: {
+              type: 'string',
+            },
+            step2Title: {
+              type: 'string',
+            },
+            step2SubTitle: {
+              type: 'string',
+            },
+            step3Title: {
+              type: 'string',
+            },
+            step3SubTitle: {
+              type: 'string',
+            },
+            status: {
+              type: 'string',
+              enum: ['active', 'inactive'],
+            },
+          },
+        },
+        AboutUs: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'About Us ID',
+            },
+            title: {
+              type: 'string',
+              description: 'Main title',
+            },
+            subtitle: {
+              type: 'string',
+              description: 'Subtitle',
+            },
+            banner: {
+              type: 'string',
+              description: 'Main banner image URL',
+            },
+            infoTitle1: {
+              type: 'string',
+            },
+            infoSubTitle1: {
+              type: 'string',
+            },
+            infoTitle2: {
+              type: 'string',
+            },
+            infoSubTitle2: {
+              type: 'string',
+            },
+            description: {
+              type: 'string',
+            },
+            founderTitle: {
+              type: 'string',
+            },
+            founderImage: {
+              type: 'string',
+            },
+            founderName: {
+              type: 'string',
+            },
+            founderDesignation: {
+              type: 'string',
+            },
+            founderDescription: {
+              type: 'string',
+            },
+            aboutTitle: {
+              type: 'string',
+            },
+            aboutSubTitle: {
+              type: 'string',
+            },
+            isoCertificate: {
+              type: 'string',
+            },
+            aboutBanner1: {
+              type: 'string',
+            },
+            aboutBanner2: {
+              type: 'string',
+            },
+            aboutBanner3: {
+              type: 'string',
+            },
+            aboutDescription: {
+              type: 'string',
+            },
+            metaTitle: {
+              type: 'string',
+            },
+            metaKeywords: {
+              type: 'string',
+            },
+            metaDescription: {
+              type: 'string',
+            },
+            status: {
+              type: 'string',
+              enum: ['active', 'inactive'],
+            },
+          },
+        },
+        Menu: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Menu ID',
+            },
+            title: {
+              type: 'string',
+              description: 'Menu item name',
+            },
+            description: {
+              type: 'string',
+            },
+            image: {
+              type: 'string',
+              description: 'Main image URL',
+            },
+            images: {
+              type: 'array',
+              items: {
+                type: 'string',
+              },
+              description: 'Additional image URLs',
+            },
+            restaurantPrice: {
+              type: 'number',
+              description: 'Dine-in price',
+            },
+            restaurantVat: {
+              type: 'number',
+            },
+            restaurantTotalPrice: {
+              type: 'number',
+            },
+            onlinePrice: {
+              type: 'number',
+              description: 'Online order price',
+            },
+            onlineVat: {
+              type: 'number',
+            },
+            onlineTotalPrice: {
+              type: 'number',
+            },
+            membershipPrice: {
+              type: 'number',
+              description: 'Membership price',
+            },
+            membershipVat: {
+              type: 'number',
+            },
+            membershipTotalPrice: {
+              type: 'number',
+            },
+            category: {
+              type: 'string',
+              description: 'Menu category ID',
+            },
+            brands: {
+              type: 'array',
+              items: {
+                type: 'string',
+              },
+            },
+            branches: {
+              type: 'array',
+              items: {
+                type: 'string',
+              },
+            },
+            calories: {
+              type: 'number',
+            },
+            protein: {
+              type: 'number',
+            },
+            carbs: {
+              type: 'number',
+            },
+            fibre: {
+              type: 'number',
+            },
+            sugars: {
+              type: 'number',
+            },
+            sodium: {
+              type: 'number',
+            },
+            iron: {
+              type: 'number',
+            },
+            calcium: {
+              type: 'number',
+            },
+            vitaminC: {
+              type: 'number',
+            },
+            status: {
+              type: 'string',
+              enum: ['active', 'inactive'],
+            },
+          },
+        },
+        MenuCategory: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Menu Category ID',
+            },
+            title: {
+              type: 'string',
+              description: 'Category name',
+            },
+            status: {
+              type: 'string',
+              enum: ['active', 'inactive'],
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
             },
           },
         },

@@ -16,7 +16,7 @@ const router = express_1.default.Router();
  */
 /**
  * @swagger
- * /testimonials:
+ * /v1/api/testimonials:
  *   post:
  *     summary: Create a new testimonial (admin only)
  *     tags:
@@ -56,7 +56,7 @@ const router = express_1.default.Router();
 router.post('/', (0, authMiddleware_1.auth)('admin'), testimonial_controller_1.createTestimonial);
 /**
  * @swagger
- * /testimonials:
+ * /v1/api/testimonials:
  *   get:
  *     summary: Get all testimonials (admin only)
  *     tags:
@@ -77,7 +77,7 @@ router.post('/', (0, authMiddleware_1.auth)('admin'), testimonial_controller_1.c
 router.get('/', testimonial_controller_1.getAllTestimonials);
 /**
  * @swagger
- * /testimonials/{id}:
+ * /v1/api/testimonials/{id}:
  *   get:
  *     summary: Get testimonial by ID (admin only)
  *     tags:
@@ -99,7 +99,7 @@ router.get('/', testimonial_controller_1.getAllTestimonials);
 router.get('/:id', testimonial_controller_1.getTestimonialById);
 /**
  * @swagger
- * /testimonials/{id}:
+ * /v1/api/testimonials/{id}:
  *   put:
  *     summary: Update testimonial (admin only)
  *     tags:
@@ -139,7 +139,7 @@ router.get('/:id', testimonial_controller_1.getTestimonialById);
 router.put('/:id', (0, authMiddleware_1.auth)('admin'), testimonial_controller_1.updateTestimonial);
 /**
  * @swagger
- * /testimonials/{id}:
+ * /v1/api/testimonials/{id}:
  *   delete:
  *     summary: Delete testimonial (admin only)
  *     tags:
@@ -161,7 +161,7 @@ router.put('/:id', (0, authMiddleware_1.auth)('admin'), testimonial_controller_1
 router.delete('/:id', (0, authMiddleware_1.auth)('admin'), testimonial_controller_1.deleteTestimonial);
 /**
  * @swagger
- * /testimonials/public/active:
+ * /v1/api/testimonials/public/active:
  *   get:
  *     summary: Get active testimonials for frontend (public)
  *     tags:

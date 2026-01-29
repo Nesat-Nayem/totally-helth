@@ -32,6 +32,7 @@ import { mealPlanWorkRouter } from "../modules/meal-plan-work/mealPlanWork.route
 import { whyChooseRouter } from "../modules/why-choose/whyChoose.routes";
 import { expenseModuleRouter } from "../modules/expense/expense.routes";
 import { videoRouter } from "../modules/video/video.routes";
+import { aboutUsRouter } from "../modules/about-us/aboutUs.routes";
 
 const router = Router();
 const moduleRoutes = [
@@ -179,6 +180,10 @@ const moduleRoutes = [
   {
     path: "/videos",
     route: videoRouter,
+  },
+  {
+    path: "/about-us",
+    route: aboutUsRouter,
   },
 ];
 
